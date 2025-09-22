@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Задачник</title>
+</head>
+<body>
+    <h1>Мой задачник</h1>
+
+    <input type="text" id="taskInput" placeholder="Введите задачу">
+    <button onclick="addTask()">Добавить задачу</button>
+
+    <div id="taskList"></div>
+
+    <script>
+    function addTask() {
+        const taskText = document.getElementById('taskInput').value;
+        if (taskText.trim() === '') return;
+
+        // ПОКА ПРОСТО ДОБАВЛЯЕМ ЗАДАЧУ В СПИСОК НА СТРАНИЦЕ
+        const taskList = document.getElementById('taskList');
+        const newTask = document.createElement('div');
+        newTask.textContent = taskText;
+        taskList.appendChild(newTask);
+
+        // Очищаем поле ввода
+        document.getElementById('taskInput').value = '';
+    }
+    </script>
+</body>
+</html>
