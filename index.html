@@ -15,16 +15,36 @@
     function addTask() {
         const taskText = document.getElementById('taskInput').value;
         if (taskText.trim() === '') return;
-
-        // ПОКА ПРОСТО ДОБАВЛЯЕМ ЗАДАЧУ В СПИСОК НА СТРАНИЦЕ
+    
+        // 1. Добавляем задачу на страницу
         const taskList = document.getElementById('taskList');
         const newTask = document.createElement('div');
         newTask.textContent = taskText;
         taskList.appendChild(newTask);
 
-        // Очищаем поле ввода
+        // 2. ОТПРАВЛЯЕМ НА СЕРВЕР
+        fetch('http://localhost:5000/save_task', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                user_id: 123,  // Пока заглушка, потом разберешься как получить реальный ID
+                title: taskText
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Задача сохранена:', data);
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+        });
+    
+        // 3. Очищаем поле ввода
         document.getElementById('taskInput').value = '';
     }
     </script>
 </body>
 </html>
+
