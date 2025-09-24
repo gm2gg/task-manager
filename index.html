@@ -1,41 +1,553 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>Задачник</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager - Умный задачник</title>
+    <style>
+        /* === СТИЛИ ДЛЯ МИНИМАЛИСТИЧНОГО ДИЗАЙНА === */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            opacity: 0.8;
+            font-size: 1.1em;
+        }
+        
+        /* === ФОРМА ДОБАВЛЕНИЯ ЗАДАЧИ === */
+        .task-form {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover {
+            background: #2980b9;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        /* === СПИСОК ЗАДАЧ === */
+        .tasks-section {
+            padding: 30px;
+        }
+        
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-select {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .tasks-grid {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .task-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .task-header {
+            display: flex;
+            justify-content: between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+        
+        .task-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2c3e50;
+            flex: 1;
+        }
+        
+        .task-priority {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+        
+        .priority-high { background: #ffebee; color: #c62828; }
+        .priority-medium { background: #fff3e0; color: #ef6c00; }
+        .priority-low { background: #e8f5e8; color: #2e7d32; }
+        
+        .task-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .task-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+        
+        .status-new { background: #e3f2fd; color: #1565c0; }
+        .status-progress { background: #fff8e1; color: #f57c00; }
+        .status-done { background: #e8f5e8; color: #2e7d32; }
+        
+        /* === СТАТИСТИКА === */
+        .stats-section {
+            padding: 30px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #3498db;
+        }
+        
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        /* === UX АНИМАЦИИ === */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .task-card {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        /* === АДАПТИВНОСТЬ === */
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters {
+                flex-direction: column;
+            }
+            
+            .task-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Мой задачник</h1>
+    <div class="container">
+        <header>
+            <h1>📊 Task Manager</h1>
+            <div class="subtitle">Умный инструмент для управления задачами и проектами</div>
+        </header>
 
-    <input type="text" id="taskInput" placeholder="Введите задачу">
-    <button onclick="addTask()">Добавить задачу</button>
+        <!-- ФОРМА СОЗДАНИЯ ЗАДАЧИ -->
+        <section class="task-form">
+            <h2>➕ Создать новую задачу</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="taskTitle">Название задачи *</label>
+                    <input type="text" id="taskTitle" placeholder="Введите название задачи" required>
+                </div>
+                <div class="form-group">
+                    <label for="taskAssignee">Исполнитель</label>
+                    <input type="text" id="taskAssignee" placeholder="Кто будет выполнять">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="taskDescription">Описание задачи</label>
+                <textarea id="taskDescription" placeholder="Подробное описание задачи..."></textarea>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="taskPriority">Приоритет</label>
+                    <select id="taskPriority">
+                        <option value="low">🔵 Низкий</option>
+                        <option value="medium">🟡 Средний</option>
+                        <option value="high">🔴 Высокий</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="taskComplexity">Сложность</label>
+                    <select id="taskComplexity">
+                        <option value="easy">🟢 Легкая</option>
+                        <option value="medium">🟡 Средняя</option>
+                        <option value="hard">🔴 Сложная</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="taskDeadline">Срок выполнения</label>
+                    <input type="date" id="taskDeadline">
+                </div>
+                <div class="form-group">
+                    <label for="taskStatus">Статус</label>
+                    <select id="taskStatus">
+                        <option value="new">🆕 Новая</option>
+                        <option value="progress">🔄 В работе</option>
+                        <option value="done">✅ Выполнена</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button class="btn" onclick="addTask()">📥 Добавить задачу</button>
+        </section>
 
-    <div id="taskList"></div>
+        <!-- ФИЛЬТРЫ И ПОИСК -->
+        <section class="tasks-section">
+            <h2>📋 Список задач</h2>
+            <div class="filters">
+                <select class="filter-select" onchange="filterTasks()" id="filterStatus">
+                    <option value="all">Все статусы</option>
+                    <option value="new">Новые</option>
+                    <option value="progress">В работе</option>
+                    <option value="done">Выполненные</option>
+                </select>
+                
+                <select class="filter-select" onchange="filterTasks()" id="filterPriority">
+                    <option value="all">Все приоритеты</option>
+                    <option value="high">Высокий</option>
+                    <option value="medium">Средний</option>
+                    <option value="low">Низкий</option>
+                </select>
+                
+                <select class="filter-select" onchange="filterTasks()" id="filterAssignee">
+                    <option value="all">Все исполнители</option>
+                </select>
+                
+                <input type="text" class="filter-select" placeholder="Поиск по названию..." oninput="searchTasks()" id="searchInput">
+            </div>
+            
+            <div class="tasks-grid" id="taskList">
+                <!-- Задачи будут загружаться здесь -->
+            </div>
+        </section>
+
+        <!-- СТАТИСТИКА И ОТЧЕТЫ -->
+        <section class="stats-section">
+            <h2>📈 Статистика выполнения</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalTasks">0</div>
+                    <div class="stat-label">Всего задач</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="completedTasks">0</div>
+                    <div class="stat-label">Выполнено</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="progressTasks">0</div>
+                    <div class="stat-label">В работе</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="newTasks">0</div>
+                    <div class="stat-label">Новых</div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 30px; text-align: center;">
+                <button class="btn" onclick="generateReport()">📊 Сформировать отчет</button>
+            </div>
+        </section>
+    </div>
 
     <script>
-    // ========== твой код (можно редактировать) ==========
+    // ========== ОСНОВНОЙ КОД ПРИЛОЖЕНИЯ ==========
     
+    let allTasks = []; // Храним все задачи для фильтрации
+    
+    // Функция добавления новой задачи
     function addTask() {
-        const taskText = document.getElementById('taskInput').value;
-        if (taskText.trim() === '') return;
-    
-        // твой код для отображения на странице
-        const taskList = document.getElementById('taskList');
-        const newTask = document.createElement('div');
-        newTask.textContent = taskText;
-        taskList.appendChild(newTask);
-
-        // очищаем поле ввода
-        document.getElementById('taskInput').value = '';
+        const taskData = {
+            title: document.getElementById('taskTitle').value,
+            description: document.getElementById('taskDescription').value,
+            assignee: document.getElementById('taskAssignee').value,
+            priority: document.getElementById('taskPriority').value,
+            complexity: document.getElementById('taskComplexity').value,
+            deadline: document.getElementById('taskDeadline').value,
+            status: document.getElementById('taskStatus').value
+        };
         
-        // вызываем функцию для отправки на сервер
-        saveTaskToServer(taskText);
+        // Валидация обязательного поля
+        if (!taskData.title.trim()) {
+            alert('Пожалуйста, введите название задачи');
+            return;
+        }
+        
+        // Добавляем задачу в интерфейс
+        displayTask(taskData);
+        
+        // Очищаем форму
+        clearForm();
+        
+        // Отправляем на сервер
+        saveTaskToServer(taskData);
+        
+        // Обновляем статистику
+        updateStatistics();
     }
     
-    // здесь можно добавлять свой код для сайта
-    // новые функции, обработчики, логику отображения
+    // Функция отображения задачи в списке
+    function displayTask(task, taskId = Date.now()) {
+        const taskList = document.getElementById('taskList');
+        
+        const priorityTexts = {
+            'high': '🔴 Высокий',
+            'medium': '🟡 Средний', 
+            'low': '🔵 Низкий'
+        };
+        
+        const statusTexts = {
+            'new': '🆕 Новая',
+            'progress': '🔄 В работе',
+            'done': '✅ Выполнена'
+        };
+        
+        const complexityTexts = {
+            'easy': '🟢 Легкая',
+            'medium': '🟡 Средняя',
+            'hard': '🔴 Сложная'
+        };
+        
+        const taskElement = document.createElement('div');
+        taskElement.className = 'task-card';
+        taskElement.innerHTML = `
+            <div class="task-header">
+                <div class="task-title">${task.title}</div>
+                <span class="task-priority priority-${task.priority}">${priorityTexts[task.priority]}</span>
+            </div>
+            
+            ${task.description ? `<div class="task-description" style="margin-bottom: 15px; color: #666;">${task.description}</div>` : ''}
+            
+            <div class="task-meta">
+                <div class="meta-item">
+                    <strong>Исполнитель:</strong> ${task.assignee || 'Не назначен'}
+                </div>
+                <div class="meta-item">
+                    <strong>Сложность:</strong> ${complexityTexts[task.complexity]}
+                </div>
+                <div class="meta-item">
+                    <strong>Срок:</strong> ${task.deadline ? new Date(task.deadline).toLocaleDateString('ru-RU') : 'Не установлен'}
+                </div>
+            </div>
+            
+            <div class="task-actions">
+                <select class="status-select" onchange="updateTaskStatus(${taskId}, this.value)" style="flex: 1; padding: 8px; border-radius: 5px;">
+                    <option value="new" ${task.status === 'new' ? 'selected' : ''}>🆕 Новая</option>
+                    <option value="progress" ${task.status === 'progress' ? 'selected' : ''}>🔄 В работе</option>
+                    <option value="done" ${task.status === 'done' ? 'selected' : ''}>✅ Выполнена</option>
+                </select>
+                <button class="btn btn-danger" onclick="deleteTask(${taskId})">🗑️ Удалить</button>
+            </div>
+        `;
+        
+        taskList.appendChild(taskElement);
+    }
     
-    // ========== связь с сервером (не трогать) ==========
+    // Функция очистки формы
+    function clearForm() {
+        document.getElementById('taskTitle').value = '';
+        document.getElementById('taskDescription').value = '';
+        document.getElementById('taskAssignee').value = '';
+        document.getElementById('taskPriority').value = 'medium';
+        document.getElementById('taskComplexity').value = 'medium';
+        document.getElementById('taskDeadline').value = '';
+        document.getElementById('taskStatus').value = 'new';
+    }
     
+    // Функция фильтрации задач
+    function filterTasks() {
+        const statusFilter = document.getElementById('filterStatus').value;
+        const priorityFilter = document.getElementById('filterPriority').value;
+        const assigneeFilter = document.getElementById('filterAssignee').value;
+        
+        // Здесь будет логика фильтрации
+        console.log('Фильтрация по:', {statusFilter, priorityFilter, assigneeFilter});
+    }
+    
+    // Функция поиска задач
+    function searchTasks() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        // Здесь будет логика поиска
+        console.log('Поиск:', searchTerm);
+    }
+    
+    // Функция обновления статуса задачи
+    function updateTaskStatus(taskId, newStatus) {
+        console.log('Обновление статуса задачи', taskId, 'на', newStatus);
+        // Отправка на сервер
+        updateTaskStatusOnServer(taskId, newStatus);
+        updateStatistics();
+    }
+    
+    // Функция удаления задачи
+    function deleteTask(taskId) {
+        if (confirm('Вы уверены, что хотите удалить эту задачу?')) {
+            // Удаляем из интерфейса
+            const taskElement = document.querySelector(`[onclick="deleteTask(${taskId})"]`).closest('.task-card');
+            taskElement.remove();
+            
+            // Отправляем на сервер
+            deleteTaskOnServer(taskId);
+            updateStatistics();
+        }
+    }
+    
+    // Функция обновления статистики
+    function updateStatistics() {
+        const tasks = document.querySelectorAll('.task-card');
+        const total = tasks.length;
+        const completed = document.querySelectorAll('.status-select option[value="done"]:checked').length;
+        const progress = document.querySelectorAll('.status-select option[value="progress"]:checked').length;
+        const newTasks = document.querySelectorAll('.status-select option[value="new"]:checked').length;
+        
+        document.getElementById('totalTasks').textContent = total;
+        document.getElementById('completedTasks').textContent = completed;
+        document.getElementById('progressTasks').textContent = progress;
+        document.getElementById('newTasks').textContent = newTasks;
+    }
+    
+    // Функция генерации отчета
+    function generateReport() {
+        alert('Отчет будет сгенерирован за выбранный период!');
+        // Здесь будет логика формирования отчета
+    }
+    
+    // ========== СВЯЗЬ С СЕРВЕРОМ (НЕ ТРОГАТЬ) ==========
+    
+    // Загрузка задач при старте
     function loadTasks() {
         fetch('http://localhost:5000/get_tasks?user_id=123')
             .then(response => response.json())
@@ -43,18 +555,27 @@
                 const taskList = document.getElementById('taskList');
                 taskList.innerHTML = '';
                 
-                tasks.forEach(task => {
-                    const taskElement = document.createElement('div');
-                    taskElement.textContent = task[2];
-                    taskList.appendChild(taskElement);
+                tasks.forEach((task, index) => {
+                    displayTask({
+                        title: task[2] || 'Без названия',
+                        description: task[3] || '',
+                        assignee: task[7] || '',
+                        priority: task[4] || 'medium',
+                        complexity: task[6] || 'medium',
+                        deadline: task[5] || '',
+                        status: task[8] || 'new'
+                    }, task[0]); // Используем ID из базы
                 });
+                
+                updateStatistics();
             })
             .catch(error => {
                 console.error('Ошибка загрузки задач:', error);
             });
     }
-
-    function saveTaskToServer(taskText) {
+    
+    // Сохранение задачи на сервер
+    function saveTaskToServer(taskData) {
         fetch('http://localhost:5000/save_task', {
             method: 'POST',
             headers: {
@@ -62,20 +583,70 @@
             },
             body: JSON.stringify({
                 user_id: 123,
-                title: taskText
+                title: taskData.title,
+                description: taskData.description,
+                priority: taskData.priority,
+                deadline: taskData.deadline,
+                complexity: taskData.complexity,
+                assignee: taskData.assignee,
+                status: taskData.status
             })
         })
         .then(response => response.json())
         .then(data => {
-            console.log('Задача сохранена:', data);
+            console.log('Задача сохранена на сервере:', data);
         })
         .catch(error => {
-            console.error('Ошибка:', error);
+            console.error('Ошибка сохранения:', error);
         });
     }
-
+    
+    // Обновление статуса на сервере
+    function updateTaskStatusOnServer(taskId, newStatus) {
+        fetch('http://localhost:5000/update_status', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                task_id: taskId,
+                status: newStatus
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Статус обновлен:', data);
+        })
+        .catch(error => {
+            console.error('Ошибка обновления статуса:', error);
+        });
+    }
+    
+    // Удаление задачи на сервере
+    function deleteTaskOnServer(taskId) {
+        fetch('http://localhost:5000/delete_task', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                task_id: taskId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Задача удалена:', data);
+        })
+        .catch(error => {
+            console.error('Ошибка удаления:', error);
+        });
+    }
+    
+    // Загрузка при старте
     document.addEventListener('DOMContentLoaded', loadTasks);
     
+    // Обновление статистики каждые 5 секунд (для демонстрации)
+    setInterval(updateStatistics, 5000);
     </script>
 </body>
 </html>
