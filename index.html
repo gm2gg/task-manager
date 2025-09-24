@@ -12,45 +12,56 @@
     <div id="taskList"></div>
 
     <script>
-    // Функция для ЗАГРУЗКИ задач при открытии страницы
-function loadTasks() {
-    fetch('http://localhost:5000/get_tasks?user_id=123')
-        .then(response => response.json())
-        .then(tasks => {
-            const taskList = document.getElementById('taskList');
-            taskList.innerHTML = ''; // Очищаем список
-            
-            tasks.forEach(task => {
-                const taskElement = document.createElement('div');
-                taskElement.textContent = task[2]; // title находится в третьем столбце
-                taskList.appendChild(taskElement);
-            });
-        })
-        .catch(error => {
-            console.error('Ошибка загрузки задач:', error);
-        });
-}
-
-// Загружаем задачи при загрузке страницы
-document.addEventListener('DOMContentLoaded', loadTasks);
+    // ========== твой код (можно редактировать) ==========
+    
     function addTask() {
         const taskText = document.getElementById('taskInput').value;
         if (taskText.trim() === '') return;
     
-        // 1. Добавляем задачу на страницу
+        // твой код для отображения на странице
         const taskList = document.getElementById('taskList');
         const newTask = document.createElement('div');
         newTask.textContent = taskText;
         taskList.appendChild(newTask);
 
-        // 2. ОТПРАВЛЯЕМ НА СЕРВЕР
+        // очищаем поле ввода
+        document.getElementById('taskInput').value = '';
+        
+        // вызываем функцию для отправки на сервер
+        saveTaskToServer(taskText);
+    }
+    
+    // здесь можно добавлять свой код для сайта
+    // новые функции, обработчики, логику отображения
+    
+    // ========== связь с сервером (не трогать) ==========
+    
+    function loadTasks() {
+        fetch('http://localhost:5000/get_tasks?user_id=123')
+            .then(response => response.json())
+            .then(tasks => {
+                const taskList = document.getElementById('taskList');
+                taskList.innerHTML = '';
+                
+                tasks.forEach(task => {
+                    const taskElement = document.createElement('div');
+                    taskElement.textContent = task[2];
+                    taskList.appendChild(taskElement);
+                });
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки задач:', error);
+            });
+    }
+
+    function saveTaskToServer(taskText) {
         fetch('http://localhost:5000/save_task', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                user_id: 123,  // Пока заглушка, потом разберешься как получить реальный ID
+                user_id: 123,
                 title: taskText
             })
         })
@@ -61,12 +72,10 @@ document.addEventListener('DOMContentLoaded', loadTasks);
         .catch(error => {
             console.error('Ошибка:', error);
         });
-    
-        // 3. Очищаем поле ввода
-        document.getElementById('taskInput').value = '';
     }
+
+    document.addEventListener('DOMContentLoaded', loadTasks);
+    
     </script>
 </body>
 </html>
-
-
