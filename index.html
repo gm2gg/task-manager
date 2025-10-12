@@ -666,23 +666,33 @@
 
     // обработка ID
     function initTelegramWebApp() {
+        // Проверяем, находимся ли мы в Telegram WebApp
         if (window.Telegram && window.Telegram.WebApp) {
             const user = window.Telegram.WebApp.initDataUnsafe?.user;
             if (user && user.id) {
                 telegramUserId = user.id;
                 document.getElementById('userId').value = telegramUserId;
                 console.log('Telegram User ID:', telegramUserId);
-            }
-            else {
+            } else {
+                // Если в WebApp, но ID нет - используем test
                 telegramUserId = 123;
+                document.getElementById('userId').value = "123 (test)";
             }
             window.Telegram.WebApp.ready();
             window.Telegram.WebApp.expand();
         }
         else {
-            telegramUserId = 123;
-            console.log('Telegram WebApp not available, using test ID');
+            // Если не в WebApp - запрашиваем ID у пользователя
+            telegramUserId = prompt("Введите ваш Telegram User ID (для теста):", "123");
+            if (!telegramUserId) telegramUserId = 123;
+            document.getElementById('userId').value = telegramUserId;
+            console.log('Test User ID:', telegramUserId);
         }
+
+        // Сразу загружаем задачи и настройки после установки ID
+        loadTasks();
+        loadSettings();
+        updateStatistics();
     }
 
     // Управление темами
@@ -760,9 +770,48 @@
         }
     }
 
-    function saveSettings() {
-        saveSettingsToServer();
-        showNotification('Настройки сохранены!');
+     function saveSettings() {
+        if (!telegramUserId) {
+            showNotification('Ошибка: User ID не доступен', 'error');
+            return;
+        }
+
+        const settings = {
+            user_id: parseInt(telegramUserId),
+            theme: document.getElementById('themeSelect').value,
+            notifications_enabled: document.getElementById('notificationsEnabled').checked,
+            notification_time: document.getElementById('notificationTime').value
+        };
+
+        console.log('Сохраняем настройки:', settings);
+
+        fetch('http://localhost:5000/save_settings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(settings)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Настройки сохранены:', data);
+            showNotification('Настройки успешно сохранены!');
+
+            // Применяем тему сразу после сохранения
+            currentTheme = settings.theme;
+            applyTheme(settings.theme);
+            updateThemeIcon();
+        })
+        .catch(error => {
+            console.error('Ошибка сохранения настроек:', error);
+            showNotification('Ошибка сохранения настроек', 'error');
+        });
     }
 
     function saveSettingsToServer() {
@@ -1106,27 +1155,42 @@
 
     function saveTaskToServer(taskData) {
         if (!telegramUserId) {
-            console.error('User ID not available');
+            showNotification('Ошибка: User ID не доступен', 'error');
             return;
         }
 
-        fetch('http://localhost:5000/save_task', {  // ← ДОБАВИТЬ ЭТУ СТРОЧКУ
+        const taskToSave = {
+            user_id: parseInt(telegramUserId),  // Важно: преобразуем в число
+            title: taskData.title,
+            description: taskData.description,
+            priority: taskData.priority,
+            deadline: taskData.deadline,
+            complexity: taskData.complexity,
+            assignee: taskData.assignee,
+            status: taskData.status
+        };
+
+        console.log('Отправляем задачу:', taskToSave);
+
+        fetch('http://localhost:5000/save_task', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                user_id: telegramUserId,
-                title: taskData.title,
-                description: taskData.description,
-                priority: taskData.priority,
-                deadline: taskData.deadline,
-                complexity: taskData.complexity,
-                assignee: taskData.assignee,
-                status: taskData.status
-            })
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(taskToSave)
         })
         .then(response => response.json())
-        .then(data => console.log('Задача сохранена:', data))
-        .catch(error => console.error('Ошибка сохранения:', error));
+        .then(data => {
+            console.log('Задача сохранена:', data);
+            showNotification('Задача успешно добавлена!');
+            // Перезагружаем список задач
+            loadTasks();
+        })
+        .catch(error => {
+            console.error('Ошибка сохранения:', error);
+            showNotification('Ошибка сохранения задачи', 'error');
+        });
     }
 
     function updateTaskStatusOnServer(taskId, newStatus) {
