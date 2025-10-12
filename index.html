@@ -644,12 +644,6 @@
         </div>
     </nav>
 
-    <div style="position: fixed; top: 10px; right: 10px; z-index: 10000;">
-        <button onclick="forceInit()" style="padding: 5px 10px; font-size: 12px; background: red; color: white;">
-            Force Init
-        </button>
-    </div>
-
     <script>
     // КОД (не серверный)
 
@@ -685,42 +679,36 @@
     // обработка ID
     function initTelegramWebApp() {
         console.log('🔧 Инициализация Telegram WebApp...');
-
-        // Проверяем, находимся ли мы в Telegram WebApp
+        console.log('window.Telegram:', window.Telegram);
+        console.log('window.Telegram.WebApp:', window.Telegram?.WebApp);
+        
         if (window.Telegram && window.Telegram.WebApp) {
             console.log('✅ Обнаружен Telegram WebApp');
-
-            // Инициализируем WebApp
+            console.log('initDataUnsafe:', window.Telegram.WebApp.initDataUnsafe);
+            console.log('User:', window.Telegram.WebApp.initDataUnsafe?.user);
+            
             window.Telegram.WebApp.ready();
-            window.Telegram.WebApp.expand(); // Раскрываем на весь экран
-
+            window.Telegram.WebApp.expand();
+    
             const user = window.Telegram.WebApp.initDataUnsafe?.user;
             if (user && user.id) {
                 telegramUserId = user.id;
                 document.getElementById('userId').value = telegramUserId;
-                console.log('✅ Telegram User ID:', telegramUserId, 'Username:', user.username);
+                console.log('✅ Настоящий Telegram User ID:', telegramUserId);
             } else {
                 telegramUserId = 123;
                 document.getElementById('userId').value = "123 (no user data)";
-                console.log('⚠️ User data not available, using demo ID');
+                console.log('❌ User data not available in WebApp');
             }
-
-            // Включаем возможность кликов
-            document.body.style.pointerEvents = 'auto';
-
         } else {
-            console.log('⚠️ Telegram WebApp не обнаружен, используем тестовый режим');
-            // Если не в WebApp - используем тестовый ID
+            console.log('❌ Telegram WebApp не обнаружен');
             telegramUserId = 123;
             document.getElementById('userId').value = "123 (test)";
         }
-
-        // Автоматически загружаем данные
+    
         loadTasks();
         loadSettings();
         updateStatistics();
-
-        // Активируем все кнопки
         enableAllButtons();
     }
 
@@ -1243,7 +1231,7 @@
 
         console.log('✅ Приложение инициализировано');
     });
-    
+
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const sectionId = this.getAttribute('data-section');
@@ -1252,12 +1240,6 @@
             }
         });
     });
-
-    function forceInit() {
-        console.log('🔄 Принудительная инициализация...');
-        initTelegramWebApp();
-        showNotification('Приложение перезагружено!');
-    }
 
     // Обновление каждые 10сек
     setInterval(updateStatistics, 10000);
