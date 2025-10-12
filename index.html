@@ -41,6 +41,18 @@
             color: var(--text-color);
             min-height: 100vh;
             padding-bottom: 80px;
+            pointer-events: auto !important;
+        }
+        button, input, select, textarea {
+            pointer-events: auto !important;
+            touch-action: manipulation;
+        }
+
+        /* Улучшаем отзывчивость на мобильных */
+        @media (max-width: 768px) {
+            .btn, .nav-btn, .filter-select, .search-input {
+                min-height: 44px; /* Минимальный размер для касания */
+            }
         }
 
         /* шапка и тема */
@@ -613,24 +625,30 @@
     <!-- нижняя навигация -->
     <nav class="bottom-nav">
         <div class="nav-buttons">
-            <button class="nav-btn active" onclick="showSection('stats-section')">
+            <button class="nav-btn active" data-section="stats-section">
                 <span>📈</span>
                 <span>Статистика</span>
             </button>
-            <button class="nav-btn" onclick="showSection('tasks-section')">
+            <button class="nav-btn" data-section="tasks-section">
                 <span>📋</span>
                 <span>Задачи</span>
             </button>
-            <button class="nav-btn" onclick="showSection('add-section')">
+            <button class="nav-btn" data-section="add-section">
                 <span>➕</span>
                 <span>Добавить</span>
             </button>
-            <button class="nav-btn" onclick="showSection('settings-section')">
+            <button class="nav-btn" data-section="settings-section">
                 <span>⚙️</span>
                 <span>Настройки</span>
             </button>
         </div>
     </nav>
+
+    <div style="position: fixed; top: 10px; right: 10px; z-index: 10000;">
+        <button onclick="forceInit()" style="padding: 5px 10px; font-size: 12px; background: red; color: white;">
+            Force Init
+        </button>
+    </div>
 
     <script>
     // КОД (не серверный)
@@ -651,10 +669,10 @@
             btn.classList.remove('active');
         });
 
-        const navButtons = document.querySelectorAll('.nav-btn');
-        const sectionIndex = Array.from(document.querySelectorAll('.section')).findIndex(s => s.id === sectionId);
-        if (navButtons[sectionIndex]) {
-            navButtons[sectionIndex].classList.add('active');
+        // Активируем соответствующую кнопку навигации
+        const activeNavBtn = document.querySelector(`[data-section="${sectionId}"]`);
+        if (activeNavBtn) {
+            activeNavBtn.classList.add('active');
         }
 
         if (sectionId === 'stats-section') {
@@ -666,42 +684,53 @@
 
     // обработка ID
     function initTelegramWebApp() {
+        console.log('🔧 Инициализация Telegram WebApp...');
+
         // Проверяем, находимся ли мы в Telegram WebApp
         if (window.Telegram && window.Telegram.WebApp) {
+            console.log('✅ Обнаружен Telegram WebApp');
+
+            // Инициализируем WebApp
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand(); // Раскрываем на весь экран
+
             const user = window.Telegram.WebApp.initDataUnsafe?.user;
             if (user && user.id) {
                 telegramUserId = user.id;
                 document.getElementById('userId').value = telegramUserId;
                 console.log('✅ Telegram User ID:', telegramUserId, 'Username:', user.username);
-                
-                // Автоматически загружаем данные
-                loadTasks();
-                loadSettings();
-                updateStatistics();
-                
-                return;
+            } else {
+                telegramUserId = 123;
+                document.getElementById('userId').value = "123 (no user data)";
+                console.log('⚠️ User data not available, using demo ID');
             }
-        }
-        
-        // Если не в WebApp - пробуем получить ID из URL параметров (для теста)
-        const urlParams = new URLSearchParams(window.location.search);
-        const testUserId = urlParams.get('user_id');
-        
-        if (testUserId) {
-            telegramUserId = parseInt(testUserId);
-            document.getElementById('userId').value = telegramUserId + " (test)";
-            console.log('✅ Test User ID from URL:', telegramUserId);
+
+            // Включаем возможность кликов
+            document.body.style.pointerEvents = 'auto';
+
         } else {
-            // Если нет параметра - используем фиксированный ID для теста
+            console.log('⚠️ Telegram WebApp не обнаружен, используем тестовый режим');
+            // Если не в WebApp - используем тестовый ID
             telegramUserId = 123;
-            document.getElementById('userId').value = "123 (demo)";
-            console.log('⚠️ Using demo ID:', telegramUserId);
+            document.getElementById('userId').value = "123 (test)";
         }
-        
+
         // Автоматически загружаем данные
         loadTasks();
         loadSettings();
         updateStatistics();
+
+        // Активируем все кнопки
+        enableAllButtons();
+    }
+
+    function enableAllButtons() {
+        // Активируем все кнопки и инпуты
+        const allElements = document.querySelectorAll('button, input, select, textarea');
+        allElements.forEach(element => {
+            element.style.pointerEvents = 'auto';
+            element.disabled = false;
+        });
     }
 
     // Управление темами
@@ -821,23 +850,6 @@
             console.error('Ошибка сохранения настроек:', error);
             showNotification('Ошибка сохранения настроек', 'error');
         });
-    }
-
-        const settings = {
-            user_id: telegramUserId,
-            theme: currentTheme,
-            notifications_enabled: document.getElementById('notificationsEnabled').checked,
-            notification_time: document.getElementById('notificationTime').value
-        };
-
-        fetch('http://localhost:5000/save_settings', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(settings)
-        })
-        .then(response => response.json())
-        .then(data => console.log('Настройки сохранены:', data))
-        .catch(error => console.error('Ошибка сохранения настроек:', error));
     }
 
     // добавление новой задачи
@@ -1101,11 +1113,6 @@
         alert(message);
     }
 
-    // Сохранение настроек (СДЕЛАТЬ)
-    function saveSettings() {
-        showNotification('Настройки сохранены!');
-    }
-
     // КОД (связь с сервером)
 
     function loadTasks() {
@@ -1219,10 +1226,9 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 DOM загружен, инициализируем приложение...');
+
         initTelegramWebApp();
-        loadTheme();
-        loadTasks();
-        updateStatistics();
 
         // Добавь обработчик на чекбокс уведомлений
         const notificationsCheckbox = document.getElementById('notificationsEnabled');
@@ -1234,7 +1240,24 @@
         updateNotificationVisibility();
 
         showSection('stats-section');
+
+        console.log('✅ Приложение инициализировано');
     });
+    
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const sectionId = this.getAttribute('data-section');
+            if (sectionId) {
+                showSection(sectionId);
+            }
+        });
+    });
+
+    function forceInit() {
+        console.log('🔄 Принудительная инициализация...');
+        initTelegramWebApp();
+        showNotification('Приложение перезагружено!');
+    }
 
     // Обновление каждые 10сек
     setInterval(updateStatistics, 10000);
