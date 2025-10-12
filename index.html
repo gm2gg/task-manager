@@ -681,15 +681,15 @@
         console.log('🔧 Инициализация Telegram WebApp...');
         console.log('window.Telegram:', window.Telegram);
         console.log('window.Telegram.WebApp:', window.Telegram?.WebApp);
-        
+
         if (window.Telegram && window.Telegram.WebApp) {
             console.log('✅ Обнаружен Telegram WebApp');
             console.log('initDataUnsafe:', window.Telegram.WebApp.initDataUnsafe);
             console.log('User:', window.Telegram.WebApp.initDataUnsafe?.user);
-            
+
             window.Telegram.WebApp.ready();
             window.Telegram.WebApp.expand();
-    
+
             const user = window.Telegram.WebApp.initDataUnsafe?.user;
             if (user && user.id) {
                 telegramUserId = user.id;
@@ -705,7 +705,7 @@
             telegramUserId = 123;
             document.getElementById('userId').value = "123 (test)";
         }
-    
+
         loadTasks();
         loadSettings();
         updateStatistics();
