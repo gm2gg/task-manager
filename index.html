@@ -603,7 +603,7 @@
                     </div>
                 </div>
 
-                <button class="btn" onclick="saveSettings()">
+                <button type="button" class="btn" onclick="saveSettings()">
                     💾 Сохранить настройки
                 </button>
             </div>
@@ -672,24 +672,33 @@
             if (user && user.id) {
                 telegramUserId = user.id;
                 document.getElementById('userId').value = telegramUserId;
-                console.log('Telegram User ID:', telegramUserId);
-            } else {
-                // Если в WebApp, но ID нет - используем test
-                telegramUserId = 123;
-                document.getElementById('userId').value = "123 (test)";
+                console.log('✅ Telegram User ID:', telegramUserId, 'Username:', user.username);
+                
+                // Автоматически загружаем данные
+                loadTasks();
+                loadSettings();
+                updateStatistics();
+                
+                return;
             }
-            window.Telegram.WebApp.ready();
-            window.Telegram.WebApp.expand();
         }
-        else {
-            // Если не в WebApp - запрашиваем ID у пользователя
-            telegramUserId = prompt("Введите ваш Telegram User ID (для теста):", "123");
-            if (!telegramUserId) telegramUserId = 123;
-            document.getElementById('userId').value = telegramUserId;
-            console.log('Test User ID:', telegramUserId);
+        
+        // Если не в WebApp - пробуем получить ID из URL параметров (для теста)
+        const urlParams = new URLSearchParams(window.location.search);
+        const testUserId = urlParams.get('user_id');
+        
+        if (testUserId) {
+            telegramUserId = parseInt(testUserId);
+            document.getElementById('userId').value = telegramUserId + " (test)";
+            console.log('✅ Test User ID from URL:', telegramUserId);
+        } else {
+            // Если нет параметра - используем фиксированный ID для теста
+            telegramUserId = 123;
+            document.getElementById('userId').value = "123 (demo)";
+            console.log('⚠️ Using demo ID:', telegramUserId);
         }
-
-        // Сразу загружаем задачи и настройки после установки ID
+        
+        // Автоматически загружаем данные
         loadTasks();
         loadSettings();
         updateStatistics();
@@ -700,14 +709,14 @@
         currentTheme = currentTheme === 'light' ? 'dark' : 'light';
         applyTheme(currentTheme);
         updateThemeIcon();
-        saveSettingsToServer();
+        saveSettings()
     }
 
     function changeTheme(theme) {
         currentTheme = theme;
         applyTheme(theme);
         updateThemeIcon();
-        saveSettingsToServer();
+        saveSettings()
     }
 
     function applyTheme(theme) {
@@ -770,7 +779,7 @@
         }
     }
 
-     function saveSettings() {
+    function saveSettings() {
         if (!telegramUserId) {
             showNotification('Ошибка: User ID не доступен', 'error');
             return;
@@ -813,12 +822,6 @@
             showNotification('Ошибка сохранения настроек', 'error');
         });
     }
-
-    function saveSettingsToServer() {
-        if (!telegramUserId) {
-            console.error('User ID not available');
-            return;
-        }
 
         const settings = {
             user_id: telegramUserId,
