@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Переводчик</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
+
 </head>
 <body>
   <h2>Автор S_GM</h2>
@@ -82,23 +82,26 @@ let userData = {
 // 📱 ИНИЦИАЛИЗАЦИЯ Telegram Web App
 function initTelegramApp() {
     const tg = window.Telegram.WebApp;
-    tg.expand();
 
-    const user = tg.initDataUnsafe.user;
-    if (user && user.id) {
-        currentUserId = user.id;
-        console.log('User ID:', currentUserId);
+    // Проверяем, что мы действительно в Telegram Web App
+    if (tg.initData) {
+        tg.expand();
+        const user = tg.initDataUnsafe.user;
 
-        // 🔥 ОБНОВЛЯЕМ ID НА СТРАНИЦЕ
-        document.getElementById('userInfo').textContent = `ID: ${currentUserId}`;
-
-        loadUserData();
-    } else {
-        console.log('User ID не найден');
-        currentUserId = 'test_user';
-        // 🔥 ОБНОВЛЯЕМ ДЛЯ ТЕСТОВОГО РЕЖИМА
-        document.getElementById('userInfo').textContent = `ID: ${currentUserId}`;
+        if (user && user.id) {
+            currentUserId = user.id;
+            console.log('User ID:', currentUserId);
+            document.getElementById('userInfo').textContent = `ID: ${currentUserId}`;
+            loadUserData();
+            return; // Выходим, если нашли реального пользователя
+        }
     }
+
+    // Если дошли сюда, значит НЕ в Telegram Web App
+    console.log('Режим тестирования (не в Telegram)');
+    currentUserId = 'test_user_' + Math.random().toString(36).substr(2, 9);
+    document.getElementById('userInfo').textContent = `ID: ${currentUserId} (тест)`;
+    document.getElementById('userInfo').style.background = '#ff9900'; // Оранжевый для теста
 }
 
 // 💾 ФУНКЦИЯ СОХРАНЕНИЯ ДАННЫХ
