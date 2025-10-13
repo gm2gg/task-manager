@@ -110,7 +110,6 @@ async function saveUserData() {
 
     // Подготавливаем данные для сохранения
     const dataToSave = {
-        user_id: currentUserId,
         original_text: userData.originalText,
         translated_text: userData.translatedText
     };
@@ -139,13 +138,16 @@ async function loadUserData() {
 
     try {
         // 📥 ПОЛУЧАЕМ данные с сервера
-        const response = await fetch(`/get_data?user_id=${currentUserId}`);
+        const response = await fetch('/get_data');
         const data = await response.json();
 
-        if (data.success && data.user_data) {
-            // 🎉 ВОССТАНАВЛИВАЕМ сохраненные данные
-            userData.originalText = data.user_data.original_text || '';
-            userData.translatedText = data.user_data.translated_text || '';
+        // 🔥 ИСПРАВИТЬ ЭТУ ЧАСТЬ:
+        if (data.success && data.all_user_data) {  // ← было data.user_data
+            // 🎉 ВОССТАНАВЛИВАЕМ сохраненные данные для ТЕКУЩЕГО пользователя
+            const userDataFromServer = data.all_user_data[currentUserId] || {};
+
+            userData.originalText = userDataFromServer.original_text || '';
+            userData.translatedText = userDataFromServer.translated_text || '';
 
             // 🖊️ ЗАПОЛНЯЕМ поля на странице
             document.getElementById('russian_word').value = userData.originalText;
