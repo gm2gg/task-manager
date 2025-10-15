@@ -677,39 +677,49 @@
     }
 
     // обработка ID
+    // УДАЛИТЕ СТАРУЮ ФУНКЦИЮ initTelegramWebApp И ВСТАВЬТЕ ЭТУ:
     function initTelegramWebApp() {
         console.log('🔧 Инициализация Telegram WebApp...');
-        console.log('window.Telegram:', window.Telegram);
-        console.log('window.Telegram.WebApp:', window.Telegram?.WebApp);
 
-        if (window.Telegram && window.Telegram.WebApp) {
+        // Получаем user_id из URL параметров (главный способ)
+        const urlParams = new URLSearchParams(window.location.search);
+        telegramUserId = urlParams.get('user_id');
+
+        console.log('📋 URL параметры:', Object.fromEntries(urlParams.entries()));
+
+        // Если нет в URL, пробуем получить из Telegram WebApp
+        if (!telegramUserId && window.Telegram && window.Telegram.WebApp) {
             console.log('✅ Обнаружен Telegram WebApp');
-            console.log('initDataUnsafe:', window.Telegram.WebApp.initDataUnsafe);
-            console.log('User:', window.Telegram.WebApp.initDataUnsafe?.user);
-
             window.Telegram.WebApp.ready();
             window.Telegram.WebApp.expand();
 
             const user = window.Telegram.WebApp.initDataUnsafe?.user;
             if (user && user.id) {
                 telegramUserId = user.id;
-                document.getElementById('userId').value = telegramUserId;
-                console.log('✅ Настоящий Telegram User ID:', telegramUserId);
-            } else {
-                telegramUserId = 123;
-                document.getElementById('userId').value = "123 (no user data)";
-                console.log('❌ User data not available in WebApp');
+                console.log('✅ User ID из WebApp:', telegramUserId);
             }
-        } else {
-            console.log('❌ Telegram WebApp не обнаружен');
-            telegramUserId = 123;
-            document.getElementById('userId').value = "123 (test)";
         }
+
+        // Если все еще нет, используем тестовый ID
+        if (!telegramUserId) {
+            telegramUserId = 123;
+            console.log('⚠️ Используется тестовый user_id:', telegramUserId);
+        }
+
+        console.log('🎯 Финальный User ID:', telegramUserId);
+        document.getElementById('userId').value = telegramUserId;
 
         loadTasks();
         loadSettings();
         updateStatistics();
         enableAllButtons();
+    }
+    function checkAuth() {
+        if (!telegramUserId) {
+            showNotification('Ошибка: Пользователь не авторизован', 'error');
+            return false;
+        }
+        return true;
     }
 
     function enableAllButtons() {
@@ -797,10 +807,7 @@
     }
 
     function saveSettings() {
-        if (!telegramUserId) {
-            showNotification('Ошибка: User ID не доступен', 'error');
-            return;
-        }
+        if (!checkAuth()) return;
 
         const settings = {
             user_id: parseInt(telegramUserId),
@@ -1104,6 +1111,7 @@
     // КОД (связь с сервером)
 
     function loadTasks() {
+        if (!checkAuth()) return;
         if (!telegramUserId) {
             console.error('User ID not available');
             return;
@@ -1152,6 +1160,7 @@
     }
 
     function saveTaskToServer(taskData) {
+        if (!checkAuth()) return;
         if (!telegramUserId) {
             showNotification('Ошибка: User ID не доступен', 'error');
             return;
@@ -1192,6 +1201,7 @@
     }
 
     function updateTaskStatusOnServer(taskId, newStatus) {
+        if (!checkAuth()) return;
         fetch('http://localhost:5000/update_status', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1203,6 +1213,7 @@
     }
 
     function deleteTaskOnServer(taskId) {
+        if (!checkAuth()) return;
         fetch('http://localhost:5000/delete_task', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
