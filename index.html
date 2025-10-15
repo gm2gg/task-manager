@@ -2,207 +2,1248 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Переводчик</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager - Умный задачник</title>
+    <style>
+        /* темы и переменные */
+        :root {
+            --primary-color: #3498db;
+            --primary-dark: #2980b9;
+            --danger-color: #e74c3c;
+            --danger-dark: #c0392b;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --text-color: #2c3e50;
+            --text-light: #7f8c8d;
+            --bg-color: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --border-color: #e9ecef;
+            --shadow: 0 10px 30px rgba(0,0,0,0.1);
+            --radius: 12px;
+        }
+        .dark-theme {
+            --text-color: #ecf0f1;
+            --text-light: #bdc3c7;
+            --bg-color: #2c3e50;
+            --bg-secondary: #34495e;
+            --border-color: #4a6572;
+            --shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        body {
+            background: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding-bottom: 80px;
+            pointer-events: auto !important;
+        }
+        button, input, select, textarea {
+            pointer-events: auto !important;
+            touch-action: manipulation;
+        }
 
+        /* Улучшаем отзывчивость на мобильных */
+        @media (max-width: 768px) {
+            .btn, .nav-btn, .filter-select, .search-input {
+                min-height: 44px; /* Минимальный размер для касания */
+            }
+        }
+
+        /* шапка и тема */
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .logo h1 {
+            font-size: 1.5em;
+            font-weight: 700;
+        }
+        .theme-toggle {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            backdrop-filter: blur(10px);
+        }
+
+        /* основа */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .section {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+        .section.active {
+            display: block;
+        }
+        .section-title {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            color: var(--text-color);
+            text-align: center;
+        }
+
+        /* форма добавления задачи */
+        .task-form {
+            background: var(--bg-secondary);
+            padding: 25px;
+            border-radius: var(--radius);
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        @media (min-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 0.95em;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            background: var(--bg-color);
+            color: var(--text-color);
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        textarea {
+            height: 100px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        .btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 16px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        .btn-danger {
+            background: var(--danger-color);
+        }
+        .btn-danger:hover {
+            background: var(--danger-dark);
+        }
+        .btn-success {
+            background: var(--success-color);
+        }
+
+        /* список задач */
+        .filters {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        @media (min-width: 480px) {
+            .filters {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        @media (min-width: 768px) {
+            .filters {
+                grid-template-columns: 1fr 1fr 1fr auto;
+            }
+        }
+        .filter-select, .search-input {
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-size: 14px;
+        }
+        .tasks-grid {
+            display: grid;
+            gap: 15px;
+        }
+        .task-card {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 20px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .task-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            gap: 15px;
+        }
+        .task-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: var(--text-color);
+            flex: 1;
+            line-height: 1.4;
+        }
+        .task-priority {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .priority-high { background: #ffebee; color: #c62828; }
+        .priority-medium { background: #fff3e0; color: #ef6c00; }
+        .priority-low { background: #e8f5e8; color: #2e7d32; }
+
+        .task-description {
+            color: var(--text-light);
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        .task-meta {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin: 15px 0;
+            font-size: 0.85em;
+        }
+        @media (min-width: 480px) {
+            .task-meta {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-light);
+        }
+        .task-actions {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .status-select {
+            padding: 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-size: 14px;
+        }
+
+        /* статистика */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        @media (min-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        @media (min-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        .stat-card {
+            background: var(--bg-secondary);
+            padding: 25px;
+            border-radius: var(--radius);
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+        .stat-number {
+            font-size: 2.2em;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9em;
+        }
+        .chart-container {
+            background: var(--bg-secondary);
+            padding: 25px;
+            border-radius: var(--radius);
+            margin-top: 25px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* нижняя панель */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-color);
+            border-top: 1px solid var(--border-color);
+            padding: 10px;
+            z-index: 1000;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+        }
+        .nav-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-light);
+            padding: 12px 5px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.75em;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        .nav-btn.active {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-5px);
+        }
+        .nav-btn i {
+            font-size: 1.4em;
+        }
+
+        /* анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
+        }
+
+        /*!*/
+        .hidden {
+            display: none !important;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+        }
+        .empty-state i {
+            font-size: 3em;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+    </style>
 </head>
-<body>
-  <h2>Автор S_GM</h2>
-  <h1>🌍Переводчик с русского на английский🌍</h1>
-  <input type="text" id="russian_word" placeholder="Что перевести?">
-  <button id="translateBtn">Перевести</button>
-  <div id="result"></div>
-  <div id="userInfo">ID: загрузка...</div>
-  <style>
-    body {
-      background-color: #AFEEEE;
-      border-radius: 8px;
-      display: flex;
-      flex-direction: column; /* элементы в колонку */
-      align-items: center;    /* центрируем по горизонтали */
-      justify-content: center;/* центрируем по вертикали */
-      min-height: 100vh;      /* на всю высоту экрана */
-    }
+<body class="light-theme">
+    <!-- Шапка и переключение темы -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <h1>📊 Task Manager</h1>
+            </div>
+            <button class="theme-toggle" onclick="toggleTheme()">
+                <span id="theme-icon">🌙</span> Тема
+            </button>
+        </div>
+    </header>
 
-/* Для заголовка */
-h1 {
-  font-size: 24px;
-  margin-bottom: 30px;
-}
+    <!-- ОСНОВНОЙ КОНТЕНТ -->
+    <div class="container">
+        <!-- 1.статистика -->
+        <section id="stats-section" class="section active">
+            <h2 class="section-title">📈 Статистика</h2>
 
-h2 {
-    font-family: 'Courier New', monospace;
-    font-size: 14px;
-    color: #666;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    text-align: right; /* Выравниваем по правому краю */
-    margin: 0 20px 20px 0; /* Отступы: сверху справа снизу слева */
-}
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalTasks">0</div>
+                    <div class="stat-label">Всего задач</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="completedTasks">0</div>
+                    <div class="stat-label">Выполнено</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="progressTasks">0</div>
+                    <div class="stat-label">В работе</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="newTasks">0</div>
+                    <div class="stat-label">Новых</div>
+                </div>
+            </div>
 
-/* Для поля ввода */
-#russian_word {
-  padding: 12px 15px;
-  font-size: 16px;
-  width: 250px;
-  margin-bottom: 20px;
-}
+            <div class="chart-container">
+                <h3 style="margin-bottom: 15px; color: var(--text-color);">Прогресс выполнения</h3>
+                <div id="progress-chart" style="height: 200px; background: var(--bg-color); border-radius: 8px; padding: 20px; display: flex; align-items: center; justify-content: center; color: var(--text-light);">
+                    График будет отображаться здесь
+                </div>
+            </div>
 
-/* Для кнопки */
-#translateBtn {
-  padding: 16px 48px;
-  font-size: 16px;
-}
+            <div class="text-center mb-20">
+                <button class="btn btn-success" onclick="generateReport()">
+                    📊 Сформировать отчет
+                </button>
+            </div>
+        </section>
 
-/* Для блока результата */
-#result {
-  font-size: 30px;
-  margin-top: 24px;
-  min-height: 30px;
-  padding: 10px;
-}
-#userInfo {
-    position: fixed;
-    bottom: 10px;
-    right: 10px;
-    background: rgba(0,0,0,0.7);
-    color: white;
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 12px;
-}
-  </style>
-<script>
-let currentUserId = null;
-let userData = {
-    originalText: '',
-    translatedText: ''
-};
+        <!-- 3.список задач (фильтры) -->
+        <section id="tasks-section" class="section">
+            <h2 class="section-title">📋 Мои задачи</h2>
 
-// 📱 ИНИЦИАЛИЗАЦИЯ Telegram Web App
-function initTelegramApp() {
-    const tg = window.Telegram.WebApp;
+            <div class="filters">
+                <select class="filter-select" onchange="filterTasks()" id="filterStatus">
+                    <option value="all">Все статусы</option>
+                    <option value="new">Новые</option>
+                    <option value="progress">В работе</option>
+                    <option value="done">Выполненные</option>
+                </select>
 
-    // Проверяем, что мы действительно в Telegram Web App
-    if (tg.initData) {
-        tg.expand();
-        const user = tg.initDataUnsafe.user;
+                <select class="filter-select" onchange="filterTasks()" id="filterPriority">
+                    <option value="all">Все приоритеты</option>
+                    <option value="high">Высокий</option>
+                    <option value="medium">Средний</option>
+                    <option value="low">Низкий</option>
+                </select>
 
-        if (user && user.id) {
-            currentUserId = user.id;
-            console.log('User ID:', currentUserId);
-            document.getElementById('userInfo').textContent = `ID: ${currentUserId}`;
-            loadUserData();
-            return; // Выходим, если нашли реального пользователя
+                <input type="text" class="search-input" placeholder="🔍 Поиск..." oninput="searchTasks()" id="searchInput">
+            </div>
+
+            <div class="tasks-grid" id="taskList">
+                <div class="empty-state">
+                    <div>📝</div>
+                    <div>Задачи не найдены</div>
+                    <div style="font-size: 0.9em; margin-top: 10px;">Создайте первую задачу</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- добавление задач -->
+        <section id="add-section" class="section">
+            <h2 class="section-title">➕ Новая задача</h2>
+
+            <div class="task-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="taskTitle">Название задачи *</label>
+                        <input type="text" id="taskTitle" placeholder="Введите название задачи" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskAssignee">Исполнитель</label>
+                        <input type="text" id="taskAssignee" placeholder="Кто будет выполнять">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="taskDescription">Описание задачи</label>
+                    <textarea id="taskDescription" placeholder="Подробное описание задачи..."></textarea>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="taskPriority">Приоритет</label>
+                        <select id="taskPriority">
+                            <option value="low">🔵 Низкий</option>
+                            <option value="medium" selected>🟡 Средний</option>
+                            <option value="high">🔴 Высокий</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskComplexity">Сложность</label>
+                        <select id="taskComplexity">
+                            <option value="easy">🟢 Легкая</option>
+                            <option value="medium" selected>🟡 Средняя</option>
+                            <option value="hard">🔴 Сложная</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskDeadline">Срок выполнения</label>
+                        <input type="date" id="taskDeadline">
+                    </div>
+                    <div class="form-group">
+                        <label for="taskStatus">Статус</label>
+                        <select id="taskStatus">
+                            <option value="new" selected>🆕 Новая</option>
+                            <option value="progress">🔄 В работе</option>
+                            <option value="done">✅ Выполнена</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn" onclick="addTask()">
+                    📥 Добавить задачу
+                </button>
+            </div>
+        </section>
+
+        <!-- 2.настройки -->
+        <section id="settings-section" class="section">
+            <h2 class="section-title">⚙️ Настройки</h2>
+
+            <div class="task-form">
+                <div class="form-group">
+                    <label>ID пользователя Telegram</label>
+                    <input type="text" id="userId" readonly style="background: var(--bg-secondary);">
+                    <div style="font-size: 0.8em; color: var(--text-light); margin-top: 5px;">
+                        Ваш идентификатор в Telegram
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Тема интерфейса</label>
+                    <select id="themeSelect" onchange="changeTheme(this.value)">
+                        <option value="light">🌞 Светлая тема</option>
+                        <option value="dark">🌙 Темная тема</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="notificationTimeGroup">
+                    <label>Время уведомлений</label>
+                    <select id="notificationTime">
+                        <option value="00:00">00:00</option>
+                        <option value="01:00">01:00</option>
+                        <option value="02:00">02:00</option>
+                        <option value="03:00">03:00</option>
+                        <option value="04:00">04:00</option>
+                        <option value="05:00">05:00</option>
+                        <option value="06:00">06:00</option>
+                        <option value="07:00">07:00</option>
+                        <option value="08:00">08:00</option>
+                        <option value="09:00">09:00</option>
+                        <option value="10:00">10:00</option>
+                        <option value="11:00">11:00</option>
+                        <option value="12:00" selected>12:00</option>
+                        <option value="13:00">13:00</option>
+                        <option value="14:00">14:00</option>
+                        <option value="15:00">15:00</option>
+                        <option value="16:00">16:00</option>
+                        <option value="17:00">17:00</option>
+                        <option value="18:00">18:00</option>
+                        <option value="19:00">19:00</option>
+                        <option value="20:00">20:00</option>
+                        <option value="21:00">21:00</option>
+                        <option value="22:00">22:00</option>
+                        <option value="23:00">23:00</option>
+                    </select>
+                    <div style="font-size: 0.8em; color: var(--text-light); margin-top: 5px;">
+                        Время ежедневного напоминания о задачах
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div style="display: flex; gap: 15px; margin-top: 10px;">
+                        <label style="display: flex; align-items: center; gap: 5px;">
+                            <input type="checkbox" id="notificationsEnabled" checked>
+                            Уведомления в Telegram
+                        </label>
+                    </div>
+                </div>
+
+                <button type="button" class="btn" onclick="saveSettings()">
+                    💾 Сохранить настройки
+                </button>
+            </div>
+        </section>
+    </div>
+
+    <!-- нижняя навигация -->
+    <nav class="bottom-nav">
+        <div class="nav-buttons">
+            <button class="nav-btn active" data-section="stats-section">
+                <span>📈</span>
+                <span>Статистика</span>
+            </button>
+            <button class="nav-btn" data-section="tasks-section">
+                <span>📋</span>
+                <span>Задачи</span>
+            </button>
+            <button class="nav-btn" data-section="add-section">
+                <span>➕</span>
+                <span>Добавить</span>
+            </button>
+            <button class="nav-btn" data-section="settings-section">
+                <span>⚙️</span>
+                <span>Настройки</span>
+            </button>
+        </div>
+    </nav>
+
+    <script>
+    // КОД (не серверный)
+
+    let telegramUserId = null;
+    let currentTasks = [];
+    let currentTheme = 'light';
+
+    // Навигация
+    function showSection(sectionId) {
+        document.querySelectorAll('.section').forEach(section => {
+            section.classList.remove('active');
+        });
+
+        document.getElementById(sectionId).classList.add('active');
+
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        // Активируем соответствующую кнопку навигации
+        const activeNavBtn = document.querySelector(`[data-section="${sectionId}"]`);
+        if (activeNavBtn) {
+            activeNavBtn.classList.add('active');
+        }
+
+        if (sectionId === 'stats-section') {
+            updateStatistics();
+        } else if (sectionId === 'tasks-section') {
+            loadTasks();
         }
     }
 
-    // Если дошли сюда, значит НЕ в Telegram Web App
-    console.log('Режим тестирования (не в Telegram)');
-    currentUserId = 'test_user_' + Math.random().toString(36).substr(2, 9);
-    document.getElementById('userInfo').textContent = `ID: ${currentUserId} (тест)`;
-    document.getElementById('userInfo').style.background = '#ff9900'; // Оранжевый для теста
-}
+    // обработка ID
+    function initTelegramWebApp() {
+        console.log('🔧 Инициализация Telegram WebApp...');
+        console.log('window.Telegram:', window.Telegram);
+        console.log('window.Telegram.WebApp:', window.Telegram?.WebApp);
 
-// 💾 ФУНКЦИЯ СОХРАНЕНИЯ ДАННЫХ
-async function saveUserData() {
-    if (!currentUserId) return;
+        if (window.Telegram && window.Telegram.WebApp) {
+            console.log('✅ Обнаружен Telegram WebApp');
+            console.log('initDataUnsafe:', window.Telegram.WebApp.initDataUnsafe);
+            console.log('User:', window.Telegram.WebApp.initDataUnsafe?.user);
 
-    // Подготавливаем данные для сохранения
-    const dataToSave = {
-        original_text: userData.originalText,
-        translated_text: userData.translatedText
-    };
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand();
 
-    try {
-        // 📤 ОТПРАВЛЯЕМ на сервер
-        const response = await fetch('/save_data', {
+            const user = window.Telegram.WebApp.initDataUnsafe?.user;
+            if (user && user.id) {
+                telegramUserId = user.id;
+                document.getElementById('userId').value = telegramUserId;
+                console.log('✅ Настоящий Telegram User ID:', telegramUserId);
+            } else {
+                telegramUserId = 123;
+                document.getElementById('userId').value = "123 (no user data)";
+                console.log('❌ User data not available in WebApp');
+            }
+        } else {
+            console.log('❌ Telegram WebApp не обнаружен');
+            telegramUserId = 123;
+            document.getElementById('userId').value = "123 (test)";
+        }
+
+        loadTasks();
+        loadSettings();
+        updateStatistics();
+        enableAllButtons();
+    }
+
+    function enableAllButtons() {
+        // Активируем все кнопки и инпуты
+        const allElements = document.querySelectorAll('button, input, select, textarea');
+        allElements.forEach(element => {
+            element.style.pointerEvents = 'auto';
+            element.disabled = false;
+        });
+    }
+
+    // Управление темами
+    function toggleTheme() {
+        currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+        applyTheme(currentTheme);
+        updateThemeIcon();
+        saveSettings()
+    }
+
+    function changeTheme(theme) {
+        currentTheme = theme;
+        applyTheme(theme);
+        updateThemeIcon();
+        saveSettings()
+    }
+
+    function applyTheme(theme) {
+        const body = document.body;
+        body.className = theme + '-theme';
+        localStorage.setItem('theme', theme);
+    }
+
+    function updateThemeIcon() {
+        const icon = document.getElementById('theme-icon');
+        icon.textContent = currentTheme === 'light' ? '🌙' : '🌞';
+    }
+
+    // Сохранение темф
+    function loadTheme() {
+        loadSettings();
+    }
+
+    function loadSettings() {
+        if (!telegramUserId) {
+            console.error('User ID not available');
+            return;
+        }
+
+        fetch(`http://localhost:5000/get_settings?user_id=${telegramUserId}`)
+            .then(response => response.json())
+            .then(settings => {
+                // Применяем настройки темы
+                if (settings.theme) {
+                    currentTheme = settings.theme;
+                    applyTheme(settings.theme);
+                    document.getElementById('themeSelect').value = settings.theme;
+                    updateThemeIcon();
+                }
+
+                // Настройки уведомлений
+                if (settings.notification_time) {
+                    document.getElementById('notificationTime').value = settings.notification_time;
+                }
+
+                if (settings.notifications_enabled !== undefined) {
+                    document.getElementById('notificationsEnabled').checked = settings.notifications_enabled;
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки настроек:', error);
+            });
+    }
+
+    function updateNotificationVisibility() {
+        const notificationsEnabled = document.getElementById('notificationsEnabled');
+        const notificationTimeGroup = document.getElementById('notificationTimeGroup');
+
+        if (notificationsEnabled && notificationTimeGroup) {
+            if (notificationsEnabled.checked) {
+                notificationTimeGroup.style.display = 'block';
+            } else {
+                notificationTimeGroup.style.display = 'none';
+            }
+        }
+    }
+
+    function saveSettings() {
+        if (!telegramUserId) {
+            showNotification('Ошибка: User ID не доступен', 'error');
+            return;
+        }
+
+        const settings = {
+            user_id: parseInt(telegramUserId),
+            theme: document.getElementById('themeSelect').value,
+            notifications_enabled: document.getElementById('notificationsEnabled').checked,
+            notification_time: document.getElementById('notificationTime').value
+        };
+
+        console.log('Сохраняем настройки:', settings);
+
+        fetch('http://localhost:5000/save_settings', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
-            body: JSON.stringify(dataToSave)
+            body: JSON.stringify(settings)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Настройки сохранены:', data);
+            showNotification('Настройки успешно сохранены!');
+
+            // Применяем тему сразу после сохранения
+            currentTheme = settings.theme;
+            applyTheme(settings.theme);
+            updateThemeIcon();
+        })
+        .catch(error => {
+            console.error('Ошибка сохранения настроек:', error);
+            showNotification('Ошибка сохранения настроек', 'error');
+        });
+    }
+
+    // добавление новой задачи
+    function addTask() {
+        const taskData = {
+            title: document.getElementById('taskTitle').value.trim(),
+            description: document.getElementById('taskDescription').value.trim(),
+            assignee: document.getElementById('taskAssignee').value.trim(),
+            priority: document.getElementById('taskPriority').value,
+            complexity: document.getElementById('taskComplexity').value,
+            deadline: document.getElementById('taskDeadline').value,
+            status: document.getElementById('taskStatus').value
+        };
+
+        if (!taskData.title) {
+            alert('Пожалуйста, введите название задачи');
+            return;
+        }
+
+        const taskId = Date.now();
+        currentTasks.push({...taskData, id: taskId});
+        displayTask(taskData, taskId);
+        clearForm();
+        saveTaskToServer(taskData);
+
+        showSection('tasks-section');
+        showNotification('Задача успешно добавлена!');
+    }
+
+    // отображение задачи
+    function displayTask(task, taskId) {
+        const taskList = document.getElementById('taskList');
+
+        const emptyState = taskList.querySelector('.empty-state');
+        if (emptyState) {
+            emptyState.remove();
+        }
+
+        const priorityTexts = { 'high': '🔴 Высокий', 'medium': '🟡 Средний', 'low': '🔵 Низкий' };
+        const statusTexts = { 'new': '🆕 Новая', 'progress': '🔄 В работе', 'done': '✅ Выполнена' };
+        const complexityTexts = { 'easy': '🟢 Легкая', 'medium': '🟡 Средняя', 'hard': '🔴 Сложная' };
+
+        const taskElement = document.createElement('div');
+        taskElement.className = 'task-card';
+        taskElement.innerHTML = `
+            <div class="task-header">
+                <div class="task-title">${task.title}</div>
+                <span class="task-priority priority-${task.priority}">${priorityTexts[task.priority]}</span>
+            </div>
+
+            ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
+
+            <div class="task-meta">
+                <div class="meta-item">
+                    <strong>Исполнитель:</strong> ${task.assignee || 'Не назначен'}
+                </div>
+                <div class="meta-item">
+                    <strong>Сложность:</strong> ${complexityTexts[task.complexity]}
+                </div>
+                <div class="meta-item">
+                    <strong>Срок:</strong> ${task.deadline ? new Date(task.deadline).toLocaleDateString('ru-RU') : 'Не установлен'}
+                </div>
+                <div class="meta-item">
+                    <strong>Статус:</strong> ${statusTexts[task.status]}
+                </div>
+            </div>
+
+            <div class="task-actions">
+                <select class="status-select" onchange="updateTaskStatus(${taskId}, this.value)">
+                    <option value="new" ${task.status === 'new' ? 'selected' : ''}>🆕 Новая</option>
+                    <option value="progress" ${task.status === 'progress' ? 'selected' : ''}>🔄 В работе</option>
+                    <option value="done" ${task.status === 'done' ? 'selected' : ''}>✅ Выполнена</option>
+                </select>
+                <button class="btn btn-danger" onclick="deleteTask(${taskId})" style="padding: 10px 15px; font-size: 14px;">
+                    🗑️
+                </button>
+            </div>
+        `;
+
+        taskList.appendChild(taskElement);
+    }
+
+    // Очистка формы
+    function clearForm() {
+        document.getElementById('taskTitle').value = '';
+        document.getElementById('taskDescription').value = '';
+        document.getElementById('taskAssignee').value = '';
+        document.getElementById('taskPriority').value = 'medium';
+        document.getElementById('taskComplexity').value = 'medium';
+        document.getElementById('taskDeadline').value = '';
+        document.getElementById('taskStatus').value = 'new';
+    }
+
+    // фильтрация и поиск
+    function filterTasks() {
+        const statusFilter = document.getElementById('filterStatus').value;
+        const priorityFilter = document.getElementById('filterPriority').value;
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+        const filteredTasks = currentTasks.filter(task => {
+            // Фильтр по статусу
+            if (statusFilter !== 'all' && task.status !== statusFilter) {
+                return false;
+            }
+
+            // Фильтр по приоритету
+            if (priorityFilter !== 'all' && task.priority !== priorityFilter) {
+                return false;
+            }
+
+            // Поиск по названию и описанию
+            if (searchTerm) {
+                const titleMatch = task.title.toLowerCase().includes(searchTerm);
+                const descMatch = task.description.toLowerCase().includes(searchTerm);
+                const assigneeMatch = task.assignee.toLowerCase().includes(searchTerm);
+                return titleMatch || descMatch || assigneeMatch;
+            }
+
+            return true;
         });
 
-        if (response.ok) {
-            console.log('✅ Данные сохранены');
+        displayFilteredTasks(filteredTasks);
+    }
+
+    function searchTasks() {
+        filterTasks(); // Используем ту же функцию фильтрации
+    }
+
+    function displayFilteredTasks(tasks) {
+        const taskList = document.getElementById('taskList');
+        taskList.innerHTML = '';
+
+        if (tasks.length === 0) {
+            taskList.innerHTML = `
+                <div class="empty-state">
+                    <div>🔍</div>
+                    <div>Задачи не найдены</div>
+                    <div style="font-size: 0.9em; margin-top: 10px;">Попробуйте изменить параметры поиска</div>
+                </div>
+            `;
+            return;
         }
-    } catch (error) {
-        console.log('❌ Ошибка сохранения:', error);
+
+        tasks.forEach(task => {
+            displayTask(task, task.id);
+        });
     }
-}
 
-// 📥 ФУНКЦИЯ ЗАГРУЗКИ ДАННЫХ
-async function loadUserData() {
-    if (!currentUserId) return;
+    // Обновить функцию displayTask чтобы она не перезаписывала весь список
+    function displayTask(task, taskId) {
+        const taskList = document.getElementById('taskList');
 
-    try {
-        // 📥 ПОЛУЧАЕМ данные с сервера
-        const response = await fetch('/get_data');
-        const data = await response.json();
+        const priorityTexts = { 'high': '🔴 Высокий', 'medium': '🟡 Средний', 'low': '🔵 Низкий' };
+        const statusTexts = { 'new': '🆕 Новая', 'progress': '🔄 В работе', 'done': '✅ Выполнена' };
+        const complexityTexts = { 'easy': '🟢 Легкая', 'medium': '🟡 Средняя', 'hard': '🔴 Сложная' };
 
-        // 🔥 ИСПРАВИТЬ ЭТУ ЧАСТЬ:
-        if (data.success && data.all_user_data) {  // ← было data.user_data
-            // 🎉 ВОССТАНАВЛИВАЕМ сохраненные данные для ТЕКУЩЕГО пользователя
-            const userDataFromServer = data.all_user_data[currentUserId] || {};
+        const taskElement = document.createElement('div');
+        taskElement.className = 'task-card';
+        taskElement.innerHTML = `
+            <div class="task-header">
+                <div class="task-title">${task.title}</div>
+                <span class="task-priority priority-${task.priority}">${priorityTexts[task.priority]}</span>
+            </div>
 
-            userData.originalText = userDataFromServer.original_text || '';
-            userData.translatedText = userDataFromServer.translated_text || '';
+            ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
 
-            // 🖊️ ЗАПОЛНЯЕМ поля на странице
-            document.getElementById('russian_word').value = userData.originalText;
-            document.getElementById('result').textContent = userData.translatedText;
+            <div class="task-meta">
+                <div class="meta-item">
+                    <strong>Исполнитель:</strong> ${task.assignee || 'Не назначен'}
+                </div>
+                <div class="meta-item">
+                    <strong>Сложность:</strong> ${complexityTexts[task.complexity]}
+                </div>
+                <div class="meta-item">
+                    <strong>Срок:</strong> ${task.deadline ? new Date(task.deadline).toLocaleDateString('ru-RU') : 'Не установлен'}
+                </div>
+                <div class="meta-item">
+                    <strong>Статус:</strong> ${statusTexts[task.status]}
+                </div>
+            </div>
 
-            console.log('✅ Данные загружены:', userData);
+            <div class="task-actions">
+                <select class="status-select" onchange="updateTaskStatus(${taskId}, this.value)">
+                    <option value="new" ${task.status === 'new' ? 'selected' : ''}>🆕 Новая</option>
+                    <option value="progress" ${task.status === 'progress' ? 'selected' : ''}>🔄 В работе</option>
+                    <option value="done" ${task.status === 'done' ? 'selected' : ''}>✅ Выполнена</option>
+                </select>
+                <button class="btn btn-danger" onclick="deleteTask(${taskId})" style="padding: 10px 15px; font-size: 14px;">
+                    🗑️
+                </button>
+            </div>
+        `;
+
+        taskList.appendChild(taskElement);
+    }
+    function searchTasks() {
+        const term = document.getElementById('searchInput').value.toLowerCase();
+        // Реализация поиска
+        console.log('Поиск:', term);
+    }
+
+    // Статус
+    function updateTaskStatus(taskId, newStatus) {
+        const taskIndex = currentTasks.findIndex(t => t.id === taskId);
+        if (taskIndex !== -1) {
+            currentTasks[taskIndex].status = newStatus;
+            updateTaskStatusOnServer(taskId, newStatus);
+            updateStatistics();
+            showNotification('Статус задачи обновлен');
         }
-    } catch (error) {
-        console.log('❌ Ошибка загрузки:', error);
-    }
-}
-
-// 🔄 ОБНОВЛЕННАЯ ФУНКЦИЯ ПЕРЕВОДА
-async function translateWord() {
-    const text = document.getElementById('russian_word');  // ✅ Находим элемент
-    const result = document.getElementById('result');      // ✅ Находим элемент
-
-    if (text.value.trim() === '') {
-        return;
     }
 
-    // Сохраняем оригинальный текст
-    userData.originalText = text.value;
+    // Удаление задачи
+    function deleteTask(taskId) {
+        if (confirm('Вы уверены, что хотите удалить эту задачу?')) {
+            currentTasks = currentTasks.filter(t => t.id !== taskId);
+            const taskElement = document.querySelector(`[onclick="deleteTask(${taskId})"]`)?.closest('.task-card');
+            if (taskElement) {
+                taskElement.remove();
+            }
+            deleteTaskOnServer(taskId);
+            updateStatistics();
+            showNotification('Задача удалена');
 
-    // 1. Делаем перевод
-    const response = await fetch(`https://api.mymemory.translated.net/get?q=${userData.originalText}&langpair=ru|en`);
-    const data = await response.json();
+            // Если задач не осталось, показываем сообщение
+            if (currentTasks.length === 0) {
+                const taskList = document.getElementById('taskList');
+                taskList.innerHTML = `
+                    <div class="empty-state">
+                        <div>📝</div>
+                        <div>Задачи не найдены</div>
+                        <div style="font-size: 0.9em; margin-top: 10px;">Создайте первую задачу</div>
+                    </div>
+                `;
+            }
+        }
+    }
 
-    // Сохраняем перевод
-    userData.translatedText = data.responseData.translatedText;
-    result.textContent = userData.translatedText;
+    // Обновление статистики
+    function updateStatistics() {
+        const total = currentTasks.length;
+        const completed = currentTasks.filter(t => t.status === 'done').length;
+        const progress = currentTasks.filter(t => t.status === 'progress').length;
+        const newTasks = currentTasks.filter(t => t.status === 'new').length;
 
-    // 💾 АВТОМАТИЧЕСКИ СОХРАНЯЕМ после перевода
-    saveUserData();
-}
+        document.getElementById('totalTasks').textContent = total;
+        document.getElementById('completedTasks').textContent = completed;
+        document.getElementById('progressTasks').textContent = progress;
+        document.getElementById('newTasks').textContent = newTasks;
+    }
 
-// 🏁 ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
-document.addEventListener('DOMContentLoaded', function() {
-    // Находим элементы на странице
-    const text = document.getElementById('russian_word');
-    const result = document.getElementById('result');
-    const button = document.getElementById('translateBtn');
+    // Генерация отчета (УБРАТЬ)
+    function generateReport() {
+        alert('Отчет будет сгенерирован и сохранен!');
+        // Здесь будет логика формирования отчета
+    }
 
-    // Инициализируем Telegram Web App
-    initTelegramApp();
+    // Уведомления (СДЕЛАТЬ)
+    function showNotification(message) {
+        // Простое уведомление через alert
+        alert(message);
+    }
 
-    // Назначаем обработчик кнопки
-    button.addEventListener('click', translateWord);
+    // КОД (связь с сервером)
 
-    // 💾 ДОПОЛНИТЕЛЬНО: сохраняем при изменении текста (опционально)
-    text.addEventListener('input', function() {
-        userData.originalText = text.value;
-        // Можно сохранять при каждом изменении или только по таймеру
+    function loadTasks() {
+        if (!telegramUserId) {
+            console.error('User ID not available');
+            return;
+        }
+
+        fetch(`http://localhost:5000/get_tasks?user_id=${telegramUserId}`)
+            .then(response => response.json())
+            .then(tasks => {
+                const taskList = document.getElementById('taskList');
+                taskList.innerHTML = '';
+                currentTasks = [];
+
+                if (tasks.length === 0) {
+                    taskList.innerHTML = `
+                        <div class="empty-state">
+                            <div>📝</div>
+                            <div>Задачи не найдены</div>
+                            <div style="font-size: 0.9em; margin-top: 10px;">Создайте первую задачу</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                tasks.forEach(task => {
+                    const taskData = {
+                        id: task[0],
+                        title: task[2] || 'Без названия',
+                        description: task[3] || '',
+                        assignee: task[7] || '',
+                        priority: task[4] || 'medium',
+                        complexity: task[6] || 'medium',
+                        deadline: task[5] || '',
+                        status: task[8] || 'new'
+                    };
+
+                    currentTasks.push(taskData);
+                });
+
+                // После загрузки применяем текущие фильтры
+                filterTasks();
+                updateStatistics();
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки задач:', error);
+            });
+    }
+
+    function saveTaskToServer(taskData) {
+        if (!telegramUserId) {
+            showNotification('Ошибка: User ID не доступен', 'error');
+            return;
+        }
+
+        const taskToSave = {
+            user_id: parseInt(telegramUserId),  // Важно: преобразуем в число
+            title: taskData.title,
+            description: taskData.description,
+            priority: taskData.priority,
+            deadline: taskData.deadline,
+            complexity: taskData.complexity,
+            assignee: taskData.assignee,
+            status: taskData.status
+        };
+
+        console.log('Отправляем задачу:', taskToSave);
+
+        fetch('http://localhost:5000/save_task', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(taskToSave)
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Задача сохранена:', data);
+            showNotification('Задача успешно добавлена!');
+            // Перезагружаем список задач
+            loadTasks();
+        })
+        .catch(error => {
+            console.error('Ошибка сохранения:', error);
+            showNotification('Ошибка сохранения задачи', 'error');
+        });
+    }
+
+    function updateTaskStatusOnServer(taskId, newStatus) {
+        fetch('http://localhost:5000/update_status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ task_id: taskId, status: newStatus })
+        })
+        .then(response => response.json())
+        .then(data => console.log('Статус обновлен:', data))
+        .catch(error => console.error('Ошибка обновления:', error));
+    }
+
+    function deleteTaskOnServer(taskId) {
+        fetch('http://localhost:5000/delete_task', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ task_id: taskId })
+        })
+        .then(response => response.json())
+        .then(data => console.log('Задача удалена:', data))
+        .catch(error => console.error('Ошибка удаления:', error));
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 DOM загружен, инициализируем приложение...');
+
+        initTelegramWebApp();
+
+        // Добавь обработчик на чекбокс уведомлений
+        const notificationsCheckbox = document.getElementById('notificationsEnabled');
+        if (notificationsCheckbox) {
+            notificationsCheckbox.addEventListener('change', updateNotificationVisibility);
+        }
+
+        // Установи начальное состояние видимости
+        updateNotificationVisibility();
+
+        showSection('stats-section');
+
+        console.log('✅ Приложение инициализировано');
     });
-});
-</script>
+
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const sectionId = this.getAttribute('data-section');
+            if (sectionId) {
+                showSection(sectionId);
+            }
+        });
+    });
+
+    // Обновление каждые 10сек
+    setInterval(updateStatistics, 10000);
+    </script>
 </body>
 </html>
+
