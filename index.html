@@ -1063,21 +1063,9 @@
                     return false;
                 }
 
-                // Поиск по всем полям
-                if (searchTerm) {
-                    const titleMatch = task.title.toLowerCase().includes(searchTerm);
-                    const descMatch = task.description.toLowerCase().includes(searchTerm);
-                    const assigneeMatch = task.assignee.toLowerCase().includes(searchTerm);
-                    const statusTexts = { 'new': 'новая', 'progress': 'в работе', 'done': 'выполнена' };
-                    const statusMatch = statusTexts[task.status].includes(searchTerm);
-                    const priorityTexts = { 'high': 'высокий', 'medium': 'средний', 'low': 'низкий' };
-                    const priorityMatch = priorityTexts[task.priority].includes(searchTerm);
-                    const complexityTexts = { 'easy': 'легкая', 'medium': 'средняя', 'hard': 'сложная' };
-                    const complexityMatch = complexityTexts[task.complexity].includes(searchTerm);
-
-                    if (!(titleMatch || descMatch || assigneeMatch || statusMatch || priorityMatch || complexityMatch)) {
-                        return false;
-                    }
+                // Поиск ТОЛЬКО по названию
+                if (searchTerm && !task.title.toLowerCase().includes(searchTerm)) {
+                    return false;
                 }
 
                 return true;
@@ -1096,23 +1084,8 @@
             }
 
             const filteredTasks = currentTasks.filter(task => {
-                // Поиск по названию
-                const titleMatch = task.title.toLowerCase().includes(searchTerm);
-                // Поиск по описанию
-                const descMatch = task.description.toLowerCase().includes(searchTerm);
-                // Поиск по исполнителю
-                const assigneeMatch = task.assignee.toLowerCase().includes(searchTerm);
-                // Поиск по статусу (русское название)
-                const statusTexts = { 'new': 'новая', 'progress': 'в работе', 'done': 'выполнена' };
-                const statusMatch = statusTexts[task.status].includes(searchTerm);
-                // Поиск по приоритету (русское название)
-                const priorityTexts = { 'high': 'высокий', 'medium': 'средний', 'low': 'низкий' };
-                const priorityMatch = priorityTexts[task.priority].includes(searchTerm);
-                // Поиск по сложности (русское название)
-                const complexityTexts = { 'easy': 'легкая', 'medium': 'средняя', 'hard': 'сложная' };
-                const complexityMatch = complexityTexts[task.complexity].includes(searchTerm);
-
-                return titleMatch || descMatch || assigneeMatch || statusMatch || priorityMatch || complexityMatch;
+                // Поиск ТОЛЬКО по названию задачи
+                return task.title.toLowerCase().includes(searchTerm);
             });
 
             displayFilteredTasks(filteredTasks);
