@@ -29,6 +29,20 @@
                 --border-color: #4a6572;
                 --shadow: 0 10px 30px rgba(0,0,0,0.3);
             }
+            .dark-theme .time-picker-column {
+                background-color: #34495e;
+                color: #ecf0f1;
+                border-color: #4a6572;
+            }
+
+            .dark-theme .time-picker-column div:hover {
+                background-color: #3498db;
+            }
+
+            .dark-theme .time-picker-column div.selected {
+                background-color: #3498db;
+                color: white;
+            }
             * {
                 box-sizing: border-box;
                 margin: 0;
@@ -800,7 +814,12 @@
             currentTheme = currentTheme === 'light' ? 'dark' : 'light';
             applyTheme(currentTheme);
             updateThemeIcon();
+            updateThemeSelect(); // Добавьте эту строку
             saveThemeOnly();
+        }
+
+        function updateThemeSelect() {
+            document.getElementById('themeSelect').value = currentTheme;
         }
 
         function changeTheme(theme) {
@@ -867,6 +886,7 @@
                         applyTheme(settings.theme);
                         document.getElementById('themeSelect').value = settings.theme;
                         updateThemeIcon();
+                        updateThemeSelect();
                     }
 
                     if (settings.notifications_enabled !== undefined) {
