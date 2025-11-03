@@ -854,7 +854,7 @@
                 notification_time: document.getElementById('selected-time').textContent.replace('Выбрано: ', '')
             };
 
-            fetch('http://176.108.247.51:5000/save_settings', {
+            fetch('https://176.108.247.51:5000/save_settings', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -882,7 +882,7 @@
                 return;
             }
 
-            fetch(`http://176.108.247.51:5000/get_settings?user_id=${telegramUserId}`)
+            fetch(`https://176.108.247.51:5000/get_settings?user_id=${telegramUserId}`)
                 .then(response => response.json())
                 .then(settings => {
                     if (settings.theme) {
@@ -942,7 +942,7 @@
 
             console.log('Сохраняем настройки:', settings);
 
-            fetch('http://176.108.247.51:5000/save_settings', {
+            fetch('https://176.108.247.51:5000/save_settings', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1210,7 +1210,7 @@
                 return;
             }
 
-            fetch(`http://176.108.247.51:5000/get_tasks?user_id=${telegramUserId}`)
+            fetch(`https://176.108.247.51:5000/get_tasks?user_id=${telegramUserId}`)
                 .then(response => response.json())
                 .then(tasks => {
                     const taskList = document.getElementById('taskList');
@@ -1273,7 +1273,7 @@
 
             console.log('Отправляем задачу на сервер:', taskToSave);
 
-            fetch('http://176.108.247.51:5000/save_task', {
+            fetch('https://176.108.247.51:5000/save_task', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1304,7 +1304,7 @@
 
         function updateTaskStatusOnServer(taskId, newStatus) {
             if (!checkAuth()) return;
-            fetch('http://176.108.247.51:5000/update_status', {
+            fetch('https://176.108.247.51:5000/update_status', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ task_id: taskId, status: newStatus })
@@ -1316,7 +1316,7 @@
 
         function deleteTaskOnServer(taskId) {
             if (!checkAuth()) return;
-            fetch('http://176.108.247.51:5000/delete_task', {
+            fetch('https://176.108.247.51:5000/delete_task', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ task_id: taskId })
