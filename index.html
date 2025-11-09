@@ -2324,19 +2324,29 @@
         function createNewGroup() {
             const groupName = document.getElementById('newGroupName').value.trim();
             if (!groupName) {
-                alert('Введите название группы');
+                showNotification('Введите название группы', 'error');
                 return;
             }
 
-            if (groups.includes(groupName)) {
-                alert('Группа с таким названием уже существует');
+            // Проверяем существующие группы из select, а не из массива groups
+            const groupSelect = document.getElementById('taskGroup');
+            const existingGroups = Array.from(groupSelect.options).map(option => option.value);
+
+            if (existingGroups.includes(groupName)) {
+                showNotification('Группа с таким названием уже существует', 'error');
                 return;
             }
 
+            // Добавляем группу в select
+            const option = document.createElement('option');
+            option.value = groupName;
+            option.textContent = groupName;
+            groupSelect.appendChild(option);
+
+            // Обновляем группы
             groups.push(groupName);
-            updateGroupSelect();
             updateModalFilters();
-            document.getElementById('taskGroup').value = groupName;
+            groupSelect.value = groupName;
             toggleGroupButtons();
             closeGroupModal();
 
