@@ -1252,10 +1252,10 @@
                     user_id: parseInt(telegramUserId),
                     theme: document.getElementById('themeSelect').value,
                     notifications_enabled: document.getElementById('notificationsEnabled').checked,
-                    notification_time: notificationTime
+                    notification_time: notificationTime  // ✅ Теперь время идет на сервер
                 };
 
-                console.log('Сохраняем настройки:', settings);
+                console.log('💾 Сохраняем настройки:', settings);
 
                 fetch('https://176.108.247.51:5000/save_settings', {
                     method: 'POST',
@@ -1266,25 +1266,23 @@
                     body: JSON.stringify(settings)
                 })
                 .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     return response.json();
                 })
                 .then(data => {
-                    console.log('Настройки сохранены:', data);
+                    console.log('✅ Настройки сохранены:', data);
                     if (data.status === 'success') {
                         showNotification('Настройки успешно сохранены!');
                         unsavedChanges = false;
-                        currentTheme = settings.theme;
-                        applyTheme(settings.theme);
-                        updateThemeIcon();
+
+                        // ✅ Очищаем локальное хранилище - теперь время только на сервере
+                        localStorage.removeItem('notificationTime');
                     } else {
                         throw new Error(data.error || 'Unknown error');
                     }
                 })
                 .catch(error => {
-                    console.error('Ошибка сохранения настроек:', error);
+                    console.error('❌ Ошибка сохранения настроек:', error);
                     showNotification('Ошибка сохранения настроек: ' + error.message, 'error');
                 });
             }
@@ -1712,6 +1710,12 @@
                     return;
                 }
 
+                // ✅ ПРОВЕРКА: Есть ли вообще задачи у пользователя
+                if (currentTasks.length === 0) {
+                    showNotification('❌ У вас нет задач для построения отчета', 'error');
+                    return;
+                }
+
                 const generateBtn = document.querySelector('#reportModal .btn');
                 const originalText = generateBtn.innerHTML;
                 generateBtn.innerHTML = '⏳ Формируем отчёт...';
@@ -1719,8 +1723,14 @@
 
                 fetchReportData(startDate, endDate)
                     .then(reportData => {
-                        currentReportData = reportData;
-                        displayReportResults(reportData);
+                        // ✅ ПРОВЕРКА: Есть ли задачи в выбранном периоде
+                        if (reportData.tasks.length === 0) {
+                            showNotification('📭 Нет задач за выбранный период', 'info');
+                            document.getElementById('reportResults').classList.add('hidden');
+                        } else {
+                            currentReportData = reportData;
+                            displayReportResults(reportData);
+                        }
                         generateBtn.innerHTML = originalText;
                         generateBtn.disabled = false;
                     })
@@ -1736,16 +1746,19 @@
                     throw new Error('Пользователь не авторизован');
                 }
 
-                // Используем существующий endpoint get_tasks и фильтруем на клиенте
+                console.log(`📊 Запрос отчета: ${startDate} - ${endDate} для user_id: ${telegramUserId}`);
+
                 return fetch(`https://176.108.247.51:5000/get_tasks?user_id=${telegramUserId}`)
                     .then(response => {
+                        console.log('📨 Статус ответа:', response.status);
                         if (!response.ok) {
-                            throw new Error('Ошибка сервера');
+                            throw new Error(`Ошибка сервера: ${response.status}`);
                         }
                         return response.json();
                     })
                     .then(tasks => {
-                        // Преобразуем данные и фильтруем по датам на клиенте
+                        console.log('✅ Получено задач:', tasks.length);
+
                         const reportTasks = tasks.map(task => ({
                             id: task[0],
                             title: task[2],
@@ -1758,9 +1771,6 @@
                             status: task[9],
                             group: task[10] || 'no-group'
                         })).filter(task => {
-                            // Фильтрация по датам - задача попадает в отчёт если:
-                            // 1. Есть даты начала/окончания и они входят в период
-                            // 2. Или задача была создана в этот период
                             const taskStart = task.start_date;
                             const taskEnd = task.end_date;
 
@@ -1769,14 +1779,15 @@
                                    (taskStart && taskEnd && taskStart <= startDate && taskEnd >= endDate);
                         });
 
+                        console.log('📈 Отфильтровано задач для отчета:', reportTasks.length);
                         return {
                             tasks: reportTasks,
                             period: { startDate, endDate }
                         };
                     })
                     .catch(error => {
-                        console.error('Ошибка получения данных:', error);
-                        throw new Error('Не удалось получить данные задач');
+                        console.error('❌ Ошибка получения данных:', error);
+                        throw new Error('Не удалось получить данные задач: ' + error.message);
                     });
             }
 
@@ -1786,6 +1797,22 @@
                 let filteredTasks = reportData.tasks || [];
                 if (currentReportFilter !== 'all') {
                     filteredTasks = filteredTasks.filter(task => task.group === currentReportFilter);
+                }
+
+                // ✅ УЛУЧШЕННОЕ СООБЩЕНИЕ ЕСЛИ ЗАДАЧ НЕТ
+                if (filteredTasks.length === 0) {
+                    reportResults.innerHTML = `
+                        <div class="empty-state" style="margin: 20px 0;">
+                            <div>📭</div>
+                            <div>Нет задач за выбранный период</div>
+                            <div style="font-size: 0.9em; margin-top: 10px;">
+                                Период: ${reportData.period.startDate} - ${reportData.period.endDate}
+                                ${currentReportFilter !== 'all' ? `<br>Группа: ${currentReportFilter}` : ''}
+                            </div>
+                        </div>
+                    `;
+                    reportResults.classList.remove('hidden');
+                    return;
                 }
 
                 let html = `
@@ -1870,6 +1897,13 @@
                     return;
                 }
 
+                // ✅ ПРОВЕРКА: Есть ли вообще задачи с датами
+                const tasksWithDates = currentTasks.filter(task => task.start_date && task.end_date);
+                if (tasksWithDates.length === 0) {
+                    showNotification('❌ У вас нет задач с установленными датами для диаграммы Ганта', 'error');
+                    return;
+                }
+
                 const generateBtn = document.querySelector('#ganttModal .btn');
                 const originalText = generateBtn.innerHTML;
                 generateBtn.innerHTML = '⏳ Строим диаграмму...';
@@ -1877,8 +1911,14 @@
 
                 fetchGanttData(startDate, endDate)
                     .then(ganttData => {
-                        currentGanttData = ganttData;
-                        displayGanttChart(ganttData);
+                        // ✅ ПРОВЕРКА: Есть ли задачи в выбранном периоде
+                        if (ganttData.tasks.length === 0) {
+                            showNotification('📭 Нет задач с датами в выбранном периоде', 'info');
+                            document.getElementById('ganttResults').classList.add('hidden');
+                        } else {
+                            currentGanttData = ganttData;
+                            displayGanttChart(ganttData);
+                        }
                         generateBtn.innerHTML = originalText;
                         generateBtn.disabled = false;
                     })
