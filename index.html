@@ -1,1916 +1,2098 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Do-Lister — Планируй. Действуй. Добивайся.</title>
-    <style>
-        /* темы и переменные */
-        :root {
-            --primary-color: #3498db;
-            --primary-dark: #2980b9;
-            --danger-color: #e74c3c;
-            --danger-dark: #c0392b;
-            --success-color: #2ecc71;
-            --warning-color: #f39c12;
-            --text-color: #2c3e50;
-            --text-light: #7f8c8d;
-            --bg-color: #ffffff;
-            --bg-secondary: #f8f9fa;
-            --border-color: #e9ecef;
-            --shadow: 0 10px 30px rgba(0,0,0,0.1);
-            --radius: 12px;
-        }
-        .dark-theme {
-            --text-color: #ecf0f1;
-            --text-light: #bdc3c7;
-            --bg-color: #2c3e50;
-            --bg-secondary: #34495e;
-            --border-color: #4a6572;
-            --shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-        .dark-theme .time-picker-column {
-            background-color: #34495e;
-            color: #ecf0f1;
-            border-color: #4a6572;
-        }
-
-        .dark-theme .time-picker-column div:hover {
-            background-color: #3498db;
-        }
-
-        .dark-theme .time-picker-column div.selected {
-            background-color: #3498db;
-            color: white;
-        }
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        body {
-            background: var(--bg-color);
-            color: var(--text-color);
-            min-height: 100vh;
-            padding-bottom: 80px;
-            pointer-events: auto !important;
-        }
-        button, input, select, textarea {
-            pointer-events: auto !important;
-            touch-action: manipulation;
-        }
-
-        /* Улучшаем отзывчивость на мобильных */
-        @media (max-width: 768px) {
-            .btn, .nav-btn, .filter-select, .search-input {
-                min-height: 44px; /* Минимальный размер для касания */
+    <!DOCTYPE html>
+    <html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Do-Lister — Планируй. Действуй. Добивайся.</title>
+        <style>
+            /* темы и переменные */
+            :root {
+                --primary-color: #3498db;
+                --primary-dark: #2980b9;
+                --danger-color: #e74c3c;
+                --danger-dark: #c0392b;
+                --success-color: #2ecc71;
+                --warning-color: #f39c12;
+                --text-color: #2c3e50;
+                --text-light: #7f8c8d;
+                --bg-color: #ffffff;
+                --bg-secondary: #f8f9fa;
+                --border-color: #e9ecef;
+                --shadow: 0 10px 30px rgba(0,0,0,0.1);
+                --radius: 12px;
             }
-        }
+            .dark-theme {
+                --text-color: #ecf0f1;
+                --text-light: #bdc3c7;
+                --bg-color: #2c3e50;
+                --bg-secondary: #34495e;
+                --border-color: #4a6572;
+                --shadow: 0 10px 30px rgba(0,0,0,0.3);
+            }
+            .dark-theme .time-picker-column {
+                background-color: #34495e;
+                color: #ecf0f1;
+                border-color: #4a6572;
+            }
 
-        /* шапка и тема */
-        .selected-time {
-            padding: 10px;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--bg-color);
-            color: var(--text-color);
-            text-align: center;
-        }
-        .options-container {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            max-height: 150px; /* ограничиваем высоту */
-            overflow-y: auto;
-            z-index: 10;
-        }
-        .option {
-            padding: 8px;
-            text-align: center;
-        }
-        .option:hover {
-            background: var(--primary-color);
-            color: white;
-        }
-        .hidden {
-            display: none;
-        }
+            .dark-theme .time-picker-column div:hover {
+                background-color: #3498db;
+            }
 
-        .header {
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-            color: white;
-            padding: 20px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: var(--shadow);
-        }
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .logo h1 {
-            font-size: 1.5em;
-            font-weight: 700;
-        }
-        .theme-toggle {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.9em;
-            backdrop-filter: blur(10px);
-        }
-        .time-picker {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+            .dark-theme .time-picker-column div.selected {
+                background-color: #3498db;
+                color: white;
+            }
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+                transition: background-color 0.3s, color 0.3s;
+            }
+            body {
+                background: var(--bg-color);
+                color: var(--text-color);
+                min-height: 100vh;
+                padding-bottom: 80px;
+                pointer-events: auto !important;
+            }
+            button, input, select, textarea {
+                pointer-events: auto !important;
+                touch-action: manipulation;
+            }
 
-        .time-picker-column {
-            width: 50px;
-            max-height: 120px;
-            overflow-y: auto;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            text-align: center;
-            font-size: 16px;
-            background-color: #f0f0f0;
-        }
+            /* Улучшаем отзывчивость на мобильных */
+            @media (max-width: 768px) {
+                .btn, .nav-btn, .filter-select, .search-input {
+                    min-height: 44px; /* Минимальный размер для касания */
+                }
+            }
 
-        .time-picker-column div {
-            padding: 5px 0;
-            cursor: pointer;
-        }
+            /* шапка и тема */
+            .selected-time {
+                padding: 10px;
+                border: 2px solid var(--border-color);
+                border-radius: 8px;
+                background: var(--bg-color);
+                color: var(--text-color);
+                text-align: center;
+            }
+            .options-container {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: var(--bg-secondary);
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                max-height: 150px; /* ограничиваем высоту */
+                overflow-y: auto;
+                z-index: 10;
+            }
+            .option {
+                padding: 8px;
+                text-align: center;
+            }
+            .option:hover {
+                background: var(--primary-color);
+                color: white;
+            }
+            .hidden {
+                display: none;
+            }
 
-        .time-picker-column div.selected {
-            background-color: #3498db;
-            color: white;
-            font-weight: bold;
-            border-radius: 4px;
-        }
+            .header {
+                background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+                color: white;
+                padding: 20px;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+                box-shadow: var(--shadow);
+            }
+            .header-content {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+            .logo {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            .logo h1 {
+                font-size: 1.5em;
+                font-weight: 700;
+            }
+            .theme-toggle {
+                background: rgba(255,255,255,0.2);
+                border: none;
+                color: white;
+                padding: 10px 15px;
+                border-radius: 20px;
+                cursor: pointer;
+                font-size: 0.9em;
+                backdrop-filter: blur(10px);
+            }
+            .time-picker {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
 
-        .separator {
-            font-size: 20px;
-        }
+            .time-picker-column {
+                width: 50px;
+                max-height: 120px;
+                overflow-y: auto;
+                border: 1px solid #ccc;
+                border-radius: 6px;
+                text-align: center;
+                font-size: 16px;
+                background-color: #f0f0f0;
+            }
 
-        .notification-toggle {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            background: var(--bg-color);
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
+            .time-picker-column div {
+                padding: 5px 0;
+                cursor: pointer;
+            }
 
-        .notification-toggle:hover {
-            border-color: var(--primary-color);
-            transform: translateY(-1px);
-        }
+            .time-picker-column div.selected {
+                background-color: #3498db;
+                color: white;
+                font-weight: bold;
+                border-radius: 4px;
+            }
 
-        .notification-toggle input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            margin: 0;
-            cursor: pointer;
-        }
+            .separator {
+                font-size: 20px;
+            }
 
-        .notification-label {
-            font-weight: 600;
-            color: var(--text-color);
-            flex: 1;
-        }
+            .notification-toggle {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 12px 16px;
+                background: var(--bg-color);
+                border: 2px solid var(--border-color);
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.3s;
+            }
 
-    /* основа */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .section {
-            display: none;
-            animation: fadeIn 0.5s ease-out;
-        }
-        .section.active {
-            display: block;
-        }
-        .section-title {
-            font-size: 1.8em;
-            margin-bottom: 20px;
-            color: var(--text-color);
-            text-align: center;
-        }
+            .notification-toggle:hover {
+                border-color: var(--primary-color);
+                transform: translateY(-1px);
+            }
 
-        /* форма добавления задачи */
-        .task-form {
-            background: var(--bg-secondary);
-            padding: 25px;
-            border-radius: var(--radius);
-            margin-bottom: 25px;
-            border: 1px solid var(--border-color);
-        }
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        @media (min-width: 768px) {
+            .notification-toggle input[type="checkbox"] {
+                width: 20px;
+                height: 20px;
+                margin: 0;
+                cursor: pointer;
+            }
+
+            .notification-label {
+                font-weight: 600;
+                color: var(--text-color);
+                flex: 1;
+            }
+
+        /* основа */
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            .section {
+                display: none;
+                animation: fadeIn 0.5s ease-out;
+            }
+            .section.active {
+                display: block;
+            }
+            .section-title {
+                font-size: 1.8em;
+                margin-bottom: 20px;
+                color: var(--text-color);
+                text-align: center;
+            }
+
+            /* форма добавления задачи */
+            .task-form {
+                background: var(--bg-secondary);
+                padding: 25px;
+                border-radius: var(--radius);
+                margin-bottom: 25px;
+                border: 1px solid var(--border-color);
+            }
             .form-grid {
-                grid-template-columns: 1fr 1fr;
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 15px;
+                margin-bottom: 20px;
             }
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--text-color);
-            font-size: 0.95em;
-        }
-        input, select, textarea {
-            width: 100%;
-            padding: 14px;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 16px;
-            background: var(--bg-color);
-            color: var(--text-color);
-            transition: border-color 0.3s;
-        }
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--primary-color);
-        }
-        textarea {
-            height: 100px;
-            resize: vertical;
-            font-family: inherit;
-        }
-        .btn {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 16px 30px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            width: 100%;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        .btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-        }
-        .btn-danger {
-            background: var(--danger-color);
-        }
-        .btn-danger:hover {
-            background: var(--danger-dark);
-        }
-        .btn-success {
-            background: var(--success-color);
-        }
+            @media (min-width: 768px) {
+                .form-grid {
+                    grid-template-columns: 1fr 1fr;
+                }
+            }
+            .form-group {
+                margin-bottom: 15px;
+            }
+            label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 600;
+                color: var(--text-color);
+                font-size: 0.95em;
+            }
+            input, select, textarea {
+                width: 100%;
+                padding: 14px;
+                border: 2px solid var(--border-color);
+                border-radius: 8px;
+                font-size: 16px;
+                background: var(--bg-color);
+                color: var(--text-color);
+                transition: border-color 0.3s;
+            }
+            input:focus, select:focus, textarea:focus {
+                outline: none;
+                border-color: var(--primary-color);
+            }
+            textarea {
+                height: 100px;
+                resize: vertical;
+                font-family: inherit;
+            }
+            .btn {
+                background: var(--primary-color);
+                color: white;
+                border: none;
+                padding: 16px 30px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 16px;
+                font-weight: 600;
+                width: 100%;
+                transition: all 0.3s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+            }
+            .btn:hover {
+                background: var(--primary-dark);
+                transform: translateY(-2px);
+            }
+            .btn-danger {
+                background: var(--danger-color);
+            }
+            .btn-danger:hover {
+                background: var(--danger-dark);
+            }
+            .btn-success {
+                background: var(--success-color);
+            }
 
-        /* список задач */
-        .filters {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        @media (min-width: 480px) {
+            /* список задач */
             .filters {
-                grid-template-columns: 1fr 1fr;
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 10px;
+                margin-bottom: 20px;
             }
-        }
-        @media (min-width: 768px) {
-            .filters {
-                grid-template-columns: 1fr 1fr 1fr auto;
+            @media (min-width: 480px) {
+                .filters {
+                    grid-template-columns: 1fr 1fr;
+                }
             }
-        }
-        .filter-select, .search-input {
-            padding: 12px;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--bg-color);
-            color: var(--text-color);
-            font-size: 14px;
-        }
-        .tasks-grid {
-            display: grid;
-            gap: 15px;
-        }
-        .task-card {
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-            padding: 20px;
-            transition: all 0.3s;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        .task-card:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow);
-        }
-        .task-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-            gap: 15px;
-        }
-        .task-title {
-            font-size: 1.2em;
-            font-weight: 600;
-            color: var(--text-color);
-            flex: 1;
-            line-height: 1.4;
-        }
-        .task-priority {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.8em;
-            font-weight: 600;
-            white-space: nowrap;
-        }
+            @media (min-width: 768px) {
+                .filters {
+                    grid-template-columns: 1fr 1fr 1fr auto;
+                }
+            }
+            .filter-select, .search-input {
+                padding: 12px;
+                border: 2px solid var(--border-color);
+                border-radius: 8px;
+                background: var(--bg-color);
+                color: var(--text-color);
+                font-size: 14px;
+            }
+            .tasks-grid {
+                display: grid;
+                gap: 15px;
+            }
+            .task-card {
+                background: var(--bg-color);
+                border: 1px solid var(--border-color);
+                border-radius: var(--radius);
+                padding: 20px;
+                transition: all 0.3s;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            }
+            .task-card:hover {
+                transform: translateY(-3px);
+                box-shadow: var(--shadow);
+            }
+            .task-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 15px;
+                gap: 15px;
+            }
+            .task-title {
+                font-size: 1.2em;
+                font-weight: 600;
+                color: var(--text-color);
+                flex: 1;
+                line-height: 1.4;
+            }
+            .task-priority {
+                padding: 6px 12px;
+                border-radius: 20px;
+                font-size: 0.8em;
+                font-weight: 600;
+                white-space: nowrap;
+            }
 
-        .priority-high { background: #ffebee; color: #c62828; }
-        .priority-medium { background: #fff3e0; color: #ef6c00; }
-        .priority-low { background: #e8f5e8; color: #2e7d32; }
+            .priority-high { background: #ffebee; color: #c62828; }
+            .priority-medium { background: #fff3e0; color: #ef6c00; }
+            .priority-low { background: #e8f5e8; color: #2e7d32; }
 
-        .task-description {
-            color: var(--text-light);
-            margin-bottom: 15px;
-            line-height: 1.5;
-        }
-        .task-meta {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
-            margin: 15px 0;
-            font-size: 0.85em;
-        }
-        @media (min-width: 480px) {
+            .task-description {
+                color: var(--text-light);
+                margin-bottom: 15px;
+                line-height: 1.5;
+            }
             .task-meta {
-                grid-template-columns: 1fr 1fr;
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 10px;
+                margin: 15px 0;
+                font-size: 0.85em;
             }
-        }
-        .meta-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--text-light);
-        }
-        .task-actions {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        .status-select {
-            padding: 10px;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--bg-color);
-            color: var(--text-color);
-            font-size: 14px;
-        }
+            @media (min-width: 480px) {
+                .task-meta {
+                    grid-template-columns: 1fr 1fr;
+                }
+            }
+            .meta-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                color: var(--text-light);
+            }
+            .task-actions {
+                display: grid;
+                grid-template-columns: 1fr auto;
+                gap: 10px;
+                margin-top: 15px;
+            }
+            .status-select {
+                padding: 10px;
+                border: 2px solid var(--border-color);
+                border-radius: 8px;
+                background: var(--bg-color);
+                color: var(--text-color);
+                font-size: 14px;
+            }
 
-        /* статистика */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        @media (min-width: 480px) {
+            /* статистика */
             .stats-grid {
-                grid-template-columns: 1fr 1fr;
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 15px;
+                margin-bottom: 25px;
             }
-        }
-        @media (min-width: 768px) {
-            .stats-grid {
+            @media (min-width: 480px) {
+                .stats-grid {
+                    grid-template-columns: 1fr 1fr;
+                }
+            }
+            @media (min-width: 768px) {
+                .stats-grid {
+                    grid-template-columns: repeat(4, 1fr);
+                }
+            }
+            .stat-card {
+                background: var(--bg-secondary);
+                padding: 25px;
+                border-radius: var(--radius);
+                text-align: center;
+                border: 1px solid var(--border-color);
+            }
+            .stat-number {
+                font-size: 2.2em;
+                font-weight: 700;
+                color: var(--primary-color);
+                margin-bottom: 5px;
+            }
+            .stat-label {
+                color: var(--text-light);
+                font-size: 0.9em;
+            }
+            .chart-container {
+                background: var(--bg-secondary);
+                padding: 25px;
+                border-radius: var(--radius);
+                margin-top: 25px;
+                border: 1px solid var(--border-color);
+            }
+
+            /* нижняя панель */
+            .bottom-nav {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: var(--bg-color);
+                border-top: 1px solid var(--border-color);
+                padding: 10px;
+                z-index: 1000;
+                box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+            }
+            .nav-buttons {
+                display: grid;
                 grid-template-columns: repeat(4, 1fr);
+                gap: 10px;
+                max-width: 1200px;
+                margin: 0 auto;
             }
-        }
-        .stat-card {
-            background: var(--bg-secondary);
-            padding: 25px;
-            border-radius: var(--radius);
-            text-align: center;
-            border: 1px solid var(--border-color);
-        }
-        .stat-number {
-            font-size: 2.2em;
-            font-weight: 700;
-            color: var(--primary-color);
-            margin-bottom: 5px;
-        }
-        .stat-label {
-            color: var(--text-light);
-            font-size: 0.9em;
-        }
-        .chart-container {
-            background: var(--bg-secondary);
-            padding: 25px;
-            border-radius: var(--radius);
-            margin-top: 25px;
-            border: 1px solid var(--border-color);
-        }
+            .nav-btn {
+                background: transparent;
+                border: none;
+                color: var(--text-light);
+                padding: 12px 5px;
+                border-radius: 10px;
+                cursor: pointer;
+                font-size: 0.75em;
+                transition: all 0.3s;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 5px;
+            }
+            .nav-btn.active {
+                background: var(--primary-color);
+                color: white;
+                transform: translateY(-5px);
+            }
+            .nav-btn i {
+                font-size: 1.4em;
+            }
 
-        /* нижняя панель */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--bg-color);
-            border-top: 1px solid var(--border-color);
-            padding: 10px;
-            z-index: 1000;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
-        }
-        .nav-buttons {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .nav-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-light);
-            padding: 12px 5px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 0.75em;
-            transition: all 0.3s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-        }
-        .nav-btn.active {
-            background: var(--primary-color);
-            color: white;
-            transform: translateY(-5px);
-        }
-        .nav-btn i {
-            font-size: 1.4em;
-        }
+            /* анимации */
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            @keyframes slideIn {
+                from { transform: translateX(-100%); }
+                to { transform: translateX(0); }
+            }
 
-        /* анимации */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes slideIn {
-            from { transform: translateX(-100%); }
-            to { transform: translateX(0); }
-        }
+            /*!*/
+            .hidden {
+                display: none !important;
+            }
+            .text-center {
+                text-align: center;
+            }
+            .mb-20 {
+                margin-bottom: 20px;
+            }
+            .empty-state {
+                text-align: center;
+                padding: 40px 20px;
+                color: var(--text-light);
+            }
+            .empty-state i {
+                font-size: 3em;
+                margin-bottom: 15px;
+                opacity: 0.5;
+            }
+            /* статистика *\
+            .modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+            }
 
-        /* Стили для групп задач */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
+            .modal-content {
+                background: var(--bg-color);
+                border-radius: var(--radius);
+                padding: 0;
+                max-width: 95%;
+                width: 95%;
+                max-height: 90vh;
+                overflow-y: auto;
+                box-shadow: var(--shadow);
+            }
 
-        .modal-content {
-            background: var(--bg-color);
-            padding: 25px;
-            border-radius: var(--radius);
-            width: 90%;
-            max-width: 500px;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
+            .modal-header {
+                padding: 20px;
+                border-bottom: 1px solid var(--border-color);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
 
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
+            .modal-header h3 {
+                margin: 0;
+                color: var(--text-color);
+            }
 
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 1.5em;
-            cursor: pointer;
-            color: var(--text-light);
-        }
+            .close-btn {
+                background: none;
+                border: none;
+                font-size: 24px;
+                cursor: pointer;
+                color: var(--text-light);
+            }
 
-        .modal-footer {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
+            .modal-body {
+                padding: 20px;
+            }
 
-        .btn-secondary {
-            background: var(--text-light);
-        }
+            /* Стили для диаграммы Ганта */
+            .gantt-container {
+                margin-top: 20px;
+                overflow-x: auto;
+            }
 
-        .btn-secondary:hover {
-            background: var(--text-color);
-        }
+            .gantt-chart {
+                min-width: 800px;
+                border: 1px solid var(--border-color);
+                border-radius: var(--radius);
+            }
 
-        /* Стили для карточек групп */
-        .group-card {
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-            padding: 20px;
-            transition: all 0.3s;
-            cursor: pointer;
-            position: relative;
-        }
+            .gantt-task {
+                display: flex;
+                align-items: center;
+                padding: 10px;
+                border-bottom: 1px solid var(--border-color);
+                transition: background-color 0.3s;
+            }
 
-        .group-card:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow);
-        }
+            .gantt-task:hover {
+                background: var(--bg-secondary);
+            }
 
-        .group-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
+            .gantt-task-info {
+                flex: 1;
+                min-width: 200px;
+            }
 
-        .group-color {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
+            .gantt-task-title {
+                font-weight: 600;
+                margin-bottom: 5px;
+            }
 
-        .group-name {
-            font-size: 1.2em;
-            font-weight: 600;
-            color: var(--text-color);
-            flex: 1;
-        }
+            .gantt-task-meta {
+                font-size: 0.8em;
+                color: var(--text-light);
+            }
 
-        .group-description {
-            color: var(--text-light);
-            margin-bottom: 15px;
-            line-height: 1.5;
-        }
+            .gantt-task-bar-container {
+                flex: 2;
+                height: 30px;
+                background: var(--bg-secondary);
+                border-radius: 5px;
+                position: relative;
+                margin: 0 10px;
+            }
 
-        .group-actions {
-            display: flex;
-            gap: 10px;
-        }
+            .gantt-task-bar {
+                height: 100%;
+                border-radius: 5px;
+                position: absolute;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 0.7em;
+                font-weight: 600;
+            }
 
-        .group-task-count {
-            background: var(--primary-color);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.8em;
-        }
+            .gantt-task-status {
+                min-width: 100px;
+                text-align: center;
+                padding: 4px 8px;
+                border-radius: 12px;
+                font-size: 0.8em;
+                font-weight: 600;
+            }
 
-        .hidden {
-            display: none !important;
-        }
+            /* Стили для отчёта */
+            .report-container {
+                margin-top: 20px;
+            }
 
-        /*!*/
-        .text-center {
-            text-align: center;
-        }
-        .mb-20 {
-            margin-bottom: 20px;
-        }
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--text-light);
-        }
-        .empty-state i {
-            font-size: 3em;
-            margin-bottom: 15px;
-            opacity: 0.5;
-        }
-    </style>
-</head>
-<body class="light-theme">
-    <!-- Шапка и переключение темы -->
-    <header class="header">
-        <div class="header-content">
-            <div class="logo">
-                <h1>📊 Do-lister</h1>
-            </div>
-            <button class="theme-toggle" onclick="toggleTheme()">
-                <span id="theme-icon">🌙</span> Тема
-            </button>
-        </div>
-    </header>
+            .report-stats {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 10px;
+                margin-bottom: 20px;
+            }
 
-    <!-- ОСНОВНОЙ КОНТЕНТ -->
-    <div class="container">
-        <!-- 1.статистика -->
-        <section id="stats-section" class="section active">
-            <h2 class="section-title">📈 Статистика</h2>
+            .report-stat {
+                background: var(--bg-secondary);
+                padding: 15px;
+                border-radius: var(--radius);
+                text-align: center;
+            }
 
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-number" id="totalTasks">0</div>
-                    <div class="stat-label">Всего задач</div>
+            .report-stat-number {
+                font-size: 1.5em;
+                font-weight: 700;
+                color: var(--primary-color);
+            }
+
+            .report-stat-label {
+                font-size: 0.8em;
+                color: var(--text-light);
+            }
+
+            .report-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+            }
+
+            .report-table th,
+            .report-table td {
+                padding: 12px;
+                text-align: left;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .report-table th {
+                background: var(--bg-secondary);
+                font-weight: 600;
+                cursor: pointer;
+            }
+
+            .report-table th:hover {
+                background: var(--primary-color);
+                color: white;
+            }
+
+            .report-table tr:hover {
+                background: var(--bg-secondary);
+            }
+
+            /* Фильтры */
+            .modal-filters {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 20px;
+                flex-wrap: wrap;
+            }
+
+            .modal-filter {
+                padding: 8px 12px;
+                border: 1px solid var(--border-color);
+                border-radius: 6px;
+                background: var(--bg-color);
+                color: var(--text-color);
+                cursor: pointer;
+            }
+
+            .modal-filter.active {
+                background: var(--primary-color);
+                color: white;
+            }
+
+            .date-inputs {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+                margin-bottom: 20px;
+            }
+
+            .info-text {
+                background: var(--bg-secondary);
+                padding: 15px;
+                border-radius: var(--radius);
+                margin-bottom: 20px;
+                border-left: 4px solid var(--primary-color);
+            }
+
+            .hidden {
+                display: none !important;
+            }
+        </style>
+    </head>
+    <body class="light-theme">
+        <!-- Шапка и переключение темы -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>📊 Do-lister</h1>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="completedTasks">0</div>
-                    <div class="stat-label">Выполнено</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="progressTasks">0</div>
-                    <div class="stat-label">В работе</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="newTasks">0</div>
-                    <div class="stat-label">Новых</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 3.список задач (фильтры) -->
-        <section id="tasks-section" class="section">
-            <h2 class="section-title">📋 Мои задачи</h2>
-
-            <div class="filters">
-                <select class="filter-select" onchange="filterTasks()" id="filterStatus">
-                    <option value="all">Все статусы</option>
-                    <option value="new">Новые</option>
-                    <option value="progress">В работе</option>
-                    <option value="done">Выполненные</option>
-                </select>
-
-                <select class="filter-select" onchange="filterTasks()" id="filterPriority">
-                    <option value="all">Все приоритеты</option>
-                    <option value="high">Высокий</option>
-                    <option value="medium">Средний</option>
-                    <option value="low">Низкий</option>
-                </select>
-
-                <input type="text" class="search-input" placeholder="🔍 Поиск..." oninput="debouncedSearch()" id="searchInput">
-            </div>
-
-            <div class="tasks-grid" id="taskList">
-                <div class="empty-state">
-                    <div>📝</div>
-                    <div>Задачи не найдены</div>
-                    <div style="font-size: 0.9em; margin-top: 10px;">Создайте первую задачу</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- добавление задач -->
-        <section id="add-section" class="section">
-            <h2 class="section-title">➕ Новая задача</h2>
-
-            <div class="task-form">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="taskTitle">Название задачи *</label>
-                        <input type="text" id="taskTitle" placeholder="Введите название задачи" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="taskAssignee">Исполнитель</label>
-                        <input type="text" id="taskAssignee" placeholder="Кто будет выполнять">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="taskDescription">Описание задачи</label>
-                    <textarea id="taskDescription" placeholder="Подробное описание задачи..."></textarea>
-                </div>
-
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="taskPriority">Приоритет</label>
-                        <select id="taskPriority">
-                            <option value="low">🔵 Низкий</option>
-                            <option value="medium" selected>🟡 Средний</option>
-                            <option value="high">🔴 Высокий</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="taskComplexity">Сложность</label>
-                        <select id="taskComplexity">
-                            <option value="easy">🟢 Легкая</option>
-                            <option value="medium" selected>🟡 Средняя</option>
-                            <option value="hard">🔴 Сложная</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="taskStartDate">Начало выполнения</label>
-                        <input type="date" id="taskStartDate">
-                    </div>
-                    <div class="form-group">
-                        <label for="taskEndDate">Конец выполнения</label>
-                        <input type="date" id="taskEndDate">
-                    </div>
-                    <div class="form-group">
-                        <label for="taskStatus">Статус</label>
-                        <select id="taskStatus">
-                            <option value="new" selected>🆕 Новая</option>
-                            <option value="progress">🔄 В работе</option>
-                            <option value="done">✅ Выполнена</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="taskGroup">Группа задач</label>
-                        <select id="taskGroup">
-                            <option value="">Без группы</option>
-                        </select>
-                    </div>
-                </div>
-
-                <button class="btn" onclick="addTask()">
-                    📥 Добавить задачу
+                <button class="theme-toggle" onclick="toggleTheme()">
+                    <span id="theme-icon">🌙</span> Тема
                 </button>
             </div>
-        </section>
+        </header>
 
-        <!-- 2.настройки -->
-        <section id="settings-section" class="section">
-            <h2 class="section-title">⚙️ Настройки</h2>
+        <!-- ОСНОВНОЙ КОНТЕНТ -->
+        <div class="container">
+            <!-- 1.статистика -->
+            <section id="stats-section" class="section active">
+                <h2 class="section-title">📈 Статистика</h2>
 
-            <div class="task-form">
-                <div class="form-group">
-                    <label>ID пользователя Telegram</label>
-                    <input type="text" id="userId" readonly style="background: var(--bg-secondary);">
-                    <div style="font-size: 0.8em; color: var(--text-light); margin-top: 5px;">
-                        Ваш идентификатор в Telegram
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalTasks">0</div>
+                        <div class="stat-label">Всего задач</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="completedTasks">0</div>
+                        <div class="stat-label">Выполнено</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="progressTasks">0</div>
+                        <div class="stat-label">В работе</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="newTasks">0</div>
+                        <div class="stat-label">Новых</div>
+                    </div>
+                    <div class="report-section">
+                        <button class="btn btn-success" onclick="openReportModal()" style="margin-bottom: 20px;">
+                            📊 Сформировать отчёт
+                        </button>
+                    </div>
+                    <div class="report-section">
+                        <button class="btn btn-success" onclick="openGanttModal()" style="margin-bottom: 20px;">
+                            📅 Диаграмма Ганта
+                        </button>
                     </div>
                 </div>
+            </section>
 
-                <div class="form-group">
-                    <label>Тема интерфейса</label>
-                    <select id="themeSelect" onchange="changeTheme(this.value)">
-                        <option value="light">🌞 Светлая тема</option>
-                        <option value="dark">🌙 Темная тема</option>
+            <!-- 3.список задач (фильтры) -->
+            <section id="tasks-section" class="section">
+                <h2 class="section-title">📋 Мои задачи</h2>
+
+                <div class="filters">
+                    <select class="filter-select" onchange="filterTasks()" id="filterStatus">
+                        <option value="all">Все статусы</option>
+                        <option value="new">Новые</option>
+                        <option value="progress">В работе</option>
+                        <option value="done">Выполненные</option>
                     </select>
+
+                    <select class="filter-select" onchange="filterTasks()" id="filterPriority">
+                        <option value="all">Все приоритеты</option>
+                        <option value="high">Высокий</option>
+                        <option value="medium">Средний</option>
+                        <option value="low">Низкий</option>
+                    </select>
+
+                    <input type="text" class="search-input" placeholder="🔍 Поиск..." oninput="debouncedSearch()" id="searchInput">
                 </div>
 
-                <div class="form-group">
-                    <label class="notification-toggle">
-                        <input type="checkbox" id="notificationsEnabled" checked>
-                        <span class="notification-label">🔔 Включить уведомления</span>
-                    </label>
-                </div>
-
-                <div class="form-group" id="notificationTimeGroup">
-                    <label>Время напоминания</label>
-                    <div class="time-picker">
-                        <div class="time-picker-column" id="hours-column"></div>
-                        <div class="separator">:</div>
-                        <div class="time-picker-column" id="minutes-column"></div>
-                    </div>
-                    <div class="selected-time" id="selected-time">Выбрано: 00:00</div>
-                </div>
-
-                <button type="button" class="btn" onclick="saveSettings()">
-                    💾 Сохранить настройки
-                </button>
-            </div>
-        </section>
-
-        <!-- 4.группы задач -->
-        <section id="groups-section" class="section">
-            <h2 class="section-title">📁 Группы задач</h2>
-            
-            <!-- Поиск и создание группы -->
-            <div class="filters">
-                <input type="text" class="search-input" placeholder="🔍 Поиск по названию группы..." 
-                       oninput="searchGroups()" id="groupSearch">
-                <button class="btn" onclick="showCreateGroupModal()" style="white-space: nowrap;">
-                    ➕ Новая группа
-                </button>
-            </div>
-
-            <!-- Список групп -->
-            <div class="tasks-grid" id="groupsList">
-                <div class="empty-state">
-                    <div>📁</div>
-                    <div>Группы не найдены</div>
-                    <div style="font-size: 0.9em; margin-top: 10px;">Создайте первую группу задач</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Секция просмотра группы -->
-        <section id="group-view-section" class="section">
-            <div class="group-header">
-                <button class="btn btn-secondary" onclick="exitGroupView()" style="margin-bottom: 15px;">
-                    ← Назад к группам
-                </button>
-                <h2 class="section-title" id="groupViewTitle">📁 Группа: <span id="currentGroupName"></span></h2>
-            </div>
-
-            <div class="filters">
-                <select class="filter-select" onchange="filterGroupTasks()" id="groupFilterStatus">
-                    <option value="all">Все статусы</option>
-                    <option value="new">Новые</option>
-                    <option value="progress">В работе</option>
-                    <option value="done">Выполненные</option>
-                </select>
-                <input type="text" class="search-input" placeholder="🔍 Поиск в группе..." 
-                       oninput="searchGroupTasks()" id="groupSearchInput">
-            </div>
-
-            <div class="tasks-grid" id="groupTasksList">
-                <!-- Задачи группы будут здесь -->
-            </div>
-        </section>
-    </div>
-
-    <!-- Модальное окно создания группы -->
-    <div id="createGroupModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>➕ Новая группа задач</h3>
-                <button class="close-btn" onclick="closeCreateGroupModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="groupName">Название группы *</label>
-                    <input type="text" id="groupName" placeholder="Введите название группы" required>
-                </div>
-                <div class="form-group">
-                    <label for="groupDescription">Описание группы</label>
-                    <textarea id="groupDescription" placeholder="Описание группы..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="groupColor">Цвет группы</label>
-                    <input type="color" id="groupColor" value="#3498db">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeCreateGroupModal()">Отмена</button>
-                <button class="btn" onclick="createGroup()">Создать группу</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- нижняя навигация -->
-    <nav class="bottom-nav">
-        <div class="nav-buttons">
-            <button class="nav-btn active" data-section="stats-section">
-                <span>📈</span>
-                <span>Статистика</span>
-            </button>
-            <button class="nav-btn" data-section="tasks-section">
-                <span>📋</span>
-                <span>Задачи</span>
-            </button>
-            <button class="nav-btn" data-section="add-section">
-                <span>➕</span>
-                <span>Добавить</span>
-            </button>
-            <button class="nav-btn" data-section="groups-section">
-                <span>📁</span>
-                <span>Группы</span>
-            </button>
-            <button class="nav-btn" data-section="settings-section">
-                <span>⚙️</span>
-                <span>Настройки</span>
-            </button>
-        </div>
-    </nav>
-
-    <script>
-    // КОД (не серверный)
-
-    let unsavedChanges = false;
-    let telegramUserId = null;
-    let currentTasks = [];
-    let currentTheme = 'light';
-    let selectedHour = 12;
-    let selectedMinute = 0;
-    let searchTimeout;
-
-    // Переменные для работы с группами
-    let currentGroups = [];
-    let currentGroupId = null;
-    let currentGroupTasks = [];
-
-    // Навигация
-    function showSection(sectionId) {
-        // Если есть несохраненные изменения и уходим из настроек - сбрасываем настройки
-        if (unsavedChanges && document.getElementById('settings-section').classList.contains('active')) {
-            resetUnsavedSettings();
-        }
-
-        document.querySelectorAll('.section').forEach(section => {
-            section.classList.remove('active');
-        });
-
-        document.getElementById(sectionId).classList.add('active');
-
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-
-        const activeNavBtn = document.querySelector(`[data-section="${sectionId}"]`);
-        if (activeNavBtn) {
-            activeNavBtn.classList.add('active');
-        }
-
-        if (sectionId === 'stats-section') {
-            updateStatistics();
-        } else if (sectionId === 'tasks-section') {
-            loadTasks();
-        } else if (sectionId === 'groups-section') {
-            loadGroups();
-        }
-    }
-
-    // обработка ID
-    function initTelegramWebApp() {
-        console.log('🔧 Инициализация Telegram WebApp...');
-
-        const urlParams = new URLSearchParams(window.location.search);
-        telegramUserId = urlParams.get('user_id');
-
-        console.log('📋 URL параметры:', Object.fromEntries(urlParams.entries()));
-
-        // Если нет в URL, пробуем получить из Telegram WebApp
-        if (!telegramUserId && window.Telegram && window.Telegram.WebApp) {
-            console.log('✅ Обнаружен Telegram WebApp');
-            window.Telegram.WebApp.ready();
-            window.Telegram.WebApp.expand();
-
-            const user = window.Telegram.WebApp.initDataUnsafe?.user;
-            if (user && user.id) {
-                telegramUserId = user.id;
-                console.log('✅ User ID из WebApp:', telegramUserId);
-            }
-        }
-
-        // Если все еще нет, используем тестовый ID
-        if (!telegramUserId) {
-            telegramUserId = 123;
-            console.log('⚠️ Используется тестовый user_id:', telegramUserId);
-        }
-
-        console.log('🎯 Финальный User ID:', telegramUserId);
-        document.getElementById('userId').value = telegramUserId;
-
-        loadTasks();
-        loadSettings();
-        updateStatistics();
-        enableAllButtons();
-        loadGroupsForSelect();
-    }
-
-    function checkAuth() {
-        if (!telegramUserId) {
-            showNotification('Ошибка: Пользователь не авторизован', 'error');
-            return false;
-        }
-        return true;
-    }
-
-    function enableAllButtons() {
-        // Активируем все кнопки и инпуты
-        const allElements = document.querySelectorAll('button, input, select, textarea');
-        allElements.forEach(element => {
-            element.style.pointerEvents = 'auto';
-            element.disabled = false;
-        });
-    }
-
-    // Управление темами
-    function toggleTheme() {
-        currentTheme = currentTheme === 'light' ? 'dark' : 'light';
-        applyTheme(currentTheme);
-        updateThemeIcon();
-        updateThemeSelect();
-        saveThemeOnly();
-    }
-
-    function updateThemeSelect() {
-        document.getElementById('themeSelect').value = currentTheme;
-    }
-
-    function changeTheme(theme) {
-        currentTheme = theme;
-        applyTheme(theme);
-        updateThemeIcon();
-        markUnsavedChanges();
-    }
-
-    function applyTheme(theme) {
-        const body = document.body;
-        body.className = theme + '-theme';
-        localStorage.setItem('theme', theme);
-    }
-
-    function updateThemeIcon() {
-        const icon = document.getElementById('theme-icon');
-        icon.textContent = currentTheme === 'light' ? '🌙' : '🌞';
-    }
-
-    function saveThemeOnly() {
-        if (!checkAuth()) return;
-
-        const settings = {
-            user_id: parseInt(telegramUserId),
-            theme: currentTheme,
-            notifications_enabled: document.getElementById('notificationsEnabled').checked,
-            notification_time: document.getElementById('selected-time').textContent.replace('Выбрано: ', '')
-        };
-
-        fetch('https://176.108.247.51:5000/save_settings', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(settings)
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Тема сохранена:', data);
-        })
-        .catch(error => {
-            console.error('Ошибка сохранения темы:', error);
-        });
-    }
-
-    // Сохранение тем
-    function loadTheme() {
-        loadSettings();
-    }
-
-    function loadSettings() {
-        if (!telegramUserId) {
-            console.error('User ID not available');
-            return;
-        }
-
-        fetch(`https://176.108.247.51:5000/get_settings?user_id=${telegramUserId}`)
-            .then(response => response.json())
-            .then(settings => {
-                if (settings.theme) {
-                    currentTheme = settings.theme;
-                    applyTheme(settings.theme);
-                    document.getElementById('themeSelect').value = settings.theme;
-                    updateThemeIcon();
-                    updateThemeSelect();
-                }
-
-                if (settings.notifications_enabled !== undefined) {
-                    document.getElementById('notificationsEnabled').checked = settings.notifications_enabled;
-                    updateNotificationVisibility();
-                }
-
-                if (settings.notification_time) {
-                    const [hours, minutes] = settings.notification_time.split(':');
-                    updateTimeSelection(hours, minutes);
-                }
-            })
-            .catch(error => {
-                console.error('Ошибка загрузки настроек:', error);
-            });
-    }
-
-    function updateNotificationVisibility() {
-        const notificationsEnabled = document.getElementById('notificationsEnabled');
-        const notificationTimeGroup = document.getElementById('notificationTimeGroup');
-
-        if (notificationsEnabled && notificationTimeGroup) {
-            if (notificationsEnabled.checked) {
-                notificationTimeGroup.style.display = 'block';
-            } else {
-                notificationTimeGroup.style.display = 'none';
-            }
-        }
-    }
-
-    function saveSettings() {
-        if (!checkAuth()) return;
-
-        const selectedTimeDiv = document.getElementById('selected-time');
-        let notificationTime = '12:00';
-        if (selectedTimeDiv) {
-            const timeText = selectedTimeDiv.textContent.replace('Выбрано: ', '');
-            notificationTime = timeText || '12:00';
-        }
-
-        const settings = {
-            user_id: parseInt(telegramUserId),
-            theme: document.getElementById('themeSelect').value,
-            notifications_enabled: document.getElementById('notificationsEnabled').checked,
-            notification_time: notificationTime
-        };
-
-        console.log('Сохраняем настройки:', settings);
-
-        fetch('https://176.108.247.51:5000/save_settings', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(settings)
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Настройки сохранены:', data);
-            if (data.status === 'success') {
-                showNotification('Настройки успешно сохранены!');
-                unsavedChanges = false;
-                currentTheme = settings.theme;
-                applyTheme(settings.theme);
-                updateThemeIcon();
-            } else {
-                throw new Error(data.error || 'Unknown error');
-            }
-        })
-        .catch(error => {
-            console.error('Ошибка сохранения настроек:', error);
-            showNotification('Ошибка сохранения настроек: ' + error.message, 'error');
-        });
-    }
-
-    // добавление новой задачи
-    function addTask() {
-        const taskData = {
-            title: document.getElementById('taskTitle').value.trim(),
-            description: document.getElementById('taskDescription').value.trim(),
-            assignee: document.getElementById('taskAssignee').value.trim(),
-            priority: document.getElementById('taskPriority').value,
-            complexity: document.getElementById('taskComplexity').value,
-            start_date: document.getElementById('taskStartDate').value,
-            end_date: document.getElementById('taskEndDate').value,
-            status: document.getElementById('taskStatus').value,
-            group_id: document.getElementById('taskGroup').value || null
-        };
-
-        if (!taskData.title) {
-            alert('Пожалуйста, введите название задачи');
-            return;
-        }
-
-        saveTaskToServer(taskData);
-        clearForm();
-        showSection('tasks-section');
-        showNotification('Задача успешно добавлена!');
-    }
-
-    // Очистка формы
-    function clearForm() {
-        document.getElementById('taskTitle').value = '';
-        document.getElementById('taskDescription').value = '';
-        document.getElementById('taskAssignee').value = '';
-        document.getElementById('taskPriority').value = 'medium';
-        document.getElementById('taskComplexity').value = 'medium';
-        document.getElementById('taskStartDate').value = '';
-        document.getElementById('taskEndDate').value = '';
-        document.getElementById('taskStatus').value = 'new';
-        document.getElementById('taskGroup').value = '';
-    }
-
-    // фильтрация и поиск
-    function debouncedSearch() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            searchTasks();
-        }, 300);
-    }
-
-    function filterTasks() {
-        const statusFilter = document.getElementById('filterStatus').value;
-        const priorityFilter = document.getElementById('filterPriority').value;
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
-
-        const filteredTasks = currentTasks.filter(task => {
-            if (statusFilter !== 'all' && task.status !== statusFilter) {
-                return false;
-            }
-
-            if (priorityFilter !== 'all' && task.priority !== priorityFilter) {
-                return false;
-            }
-
-            if (searchTerm && !task.title.toLowerCase().includes(searchTerm)) {
-                return false;
-            }
-
-            return true;
-        });
-
-        displayFilteredTasks(filteredTasks);
-    }
-
-    function searchTasks() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
-
-        if (searchTerm === '') {
-            filterTasks();
-            return;
-        }
-
-        const filteredTasks = currentTasks.filter(task => {
-            return task.title.toLowerCase().includes(searchTerm);
-        });
-
-        displayFilteredTasks(filteredTasks);
-    }
-
-    function displayFilteredTasks(tasks) {
-        const taskList = document.getElementById('taskList');
-        taskList.innerHTML = '';
-
-        if (tasks.length === 0) {
-            taskList.innerHTML = `
-                <div class="empty-state">
-                    <div>🔍</div>
-                    <div>Задачи не найдены</div>
-                    <div style="font-size: 0.9em; margin-top: 10px;">Попробуйте изменить параметры поиска</div>
-                </div>
-            `;
-            return;
-        }
-
-        tasks.forEach(task => {
-            displayTask(task, task.id);
-        });
-    }
-
-    function displayTask(task, taskId) {
-        const taskList = document.getElementById('taskList');
-
-        const priorityTexts = { 'high': '🔴 Высокий', 'medium': '🟡 Средний', 'low': '🔵 Низкий' };
-        const statusTexts = { 'new': '🆕 Новая', 'progress': '🔄 В работе', 'done': '✅ Выполнена' };
-        const complexityTexts = { 'easy': '🟢 Легкая', 'medium': '🟡 Средняя', 'hard': '🔴 Сложная' };
-
-        const taskElement = document.createElement('div');
-        taskElement.className = 'task-card';
-        taskElement.innerHTML = `
-            <div class="task-header">
-                <div class="task-title">${task.title}</div>
-                <span class="task-priority priority-${task.priority}">${priorityTexts[task.priority]}</span>
-            </div>
-
-            ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
-
-            <div class="task-meta">
-                <div class="meta-item">
-                    <strong>Исполнитель:</strong> ${task.assignee || 'Не назначен'}
-                </div>
-                <div class="meta-item">
-                    <strong>Сложность:</strong> ${complexityTexts[task.complexity]}
-                </div>
-                <div class="meta-item">
-                       <strong>Период:</strong> ${task.start_date && task.end_date ? `${new Date(task.start_date).toLocaleDateString('ru-RU')} - ${new Date(task.end_date).toLocaleDateString('ru-RU')}` : 'Не установлен'}
-                </div>
-                <div class="meta-item">
-                    <strong>Статус:</strong> ${statusTexts[task.status]}
-                </div>
-            </div>
-
-            <div class="task-actions">
-                <select class="status-select" onchange="updateTaskStatus(${taskId}, this.value)">
-                    <option value="new" ${task.status === 'new' ? 'selected' : ''}>🆕 Новая</option>
-                    <option value="progress" ${task.status === 'progress' ? 'selected' : ''}>🔄 В работе</option>
-                    <option value="done" ${task.status === 'done' ? 'selected' : ''}>✅ Выполнена</option>
-                </select>
-                <button class="btn btn-danger" onclick="deleteTask(${taskId})" style="padding: 10px 15px; font-size: 14px;">
-                    🗑️
-                </button>
-            </div>
-        `;
-
-        taskList.appendChild(taskElement);
-    }
-
-    // Статус
-    function updateTaskStatus(taskId, newStatus) {
-        const taskIndex = currentTasks.findIndex(t => t.id === taskId);
-        if (taskIndex !== -1) {
-            currentTasks[taskIndex].status = newStatus;
-            updateTaskStatusOnServer(taskId, newStatus);
-            updateStatistics();
-            showNotification('Статус задачи обновлен');
-        }
-    }
-
-    // Удаление задачи
-    function deleteTask(taskId) {
-        if (confirm('Вы уверены, что хотите удалить эту задачу?')) {
-            currentTasks = currentTasks.filter(t => t.id !== taskId);
-            const taskElement = document.querySelector(`[onclick="deleteTask(${taskId})"]`)?.closest('.task-card');
-            if (taskElement) {
-                taskElement.remove();
-            }
-            deleteTaskOnServer(taskId);
-            updateStatistics();
-            showNotification('Задача удалена');
-
-            if (currentTasks.length === 0) {
-                const taskList = document.getElementById('taskList');
-                taskList.innerHTML = `
+                <div class="tasks-grid" id="taskList">
                     <div class="empty-state">
                         <div>📝</div>
                         <div>Задачи не найдены</div>
                         <div style="font-size: 0.9em; margin-top: 10px;">Создайте первую задачу</div>
                     </div>
-                `;
+                </div>
+            </section>
+
+            <!-- добавление задач -->
+            <section id="add-section" class="section">
+                <h2 class="section-title">➕ Новая задача</h2>
+
+                <div class="task-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="taskTitle">Название задачи *</label>
+                            <input type="text" id="taskTitle" placeholder="Введите название задачи" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="taskAssignee">Исполнитель</label>
+                            <input type="text" id="taskAssignee" placeholder="Кто будет выполнять">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taskDescription">Описание задачи</label>
+                        <textarea id="taskDescription" placeholder="Подробное описание задачи..."></textarea>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="taskPriority">Приоритет</label>
+                            <select id="taskPriority">
+                                <option value="low">🔵 Низкий</option>
+                                <option value="medium" selected>🟡 Средний</option>
+                                <option value="high">🔴 Высокий</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="taskComplexity">Сложность</label>
+                            <select id="taskComplexity">
+                                <option value="easy">🟢 Легкая</option>
+                                <option value="medium" selected>🟡 Средняя</option>
+                                <option value="hard">🔴 Сложная</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="taskGroup">Группа</label>
+                            <select id="taskGroup">
+                                <option value="no-group" selected>👥 Без группы</option>
+                                <!-- Будут добавляться другие группы -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="taskStartDate">Начало выполнения</label>
+                            <input type="date" id="taskStartDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="taskEndDate">Конец выполнения</label>
+                            <input type="date" id="taskEndDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="taskStatus">Статус</label>
+                            <select id="taskStatus">
+                                <option value="new" selected>🆕 Новая</option>
+                                <option value="progress">🔄 В работе</option>
+                                <option value="done">✅ Выполнена</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn" onclick="addTask()">
+                        📥 Добавить задачу
+                    </button>
+                </div>
+            </section>
+
+            <!-- 2.настройки -->
+            <section id="settings-section" class="section">
+                <h2 class="section-title">⚙️ Настройки</h2>
+
+                <div class="task-form">
+                    <div class="form-group">
+                        <label>ID пользователя Telegram</label>
+                        <input type="text" id="userId" readonly style="background: var(--bg-secondary);">
+                        <div style="font-size: 0.8em; color: var(--text-light); margin-top: 5px;">
+                            Ваш идентификатор в Telegram
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Тема интерфейса</label>
+                        <select id="themeSelect" onchange="changeTheme(this.value)">
+                            <option value="light">🌞 Светлая тема</option>
+                            <option value="dark">🌙 Темная тема</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="notification-toggle">
+                            <input type="checkbox" id="notificationsEnabled" checked>
+                            <span class="notification-label">🔔 Включить уведомления</span>
+                        </label>
+                    </div>
+
+                    <div class="form-group" id="notificationTimeGroup">
+                        <label>Время напоминания</label>
+                        <div class="time-picker">
+                            <div class="time-picker-column" id="hours-column"></div>
+                            <div class="separator">:</div>
+                            <div class="time-picker-column" id="minutes-column"></div>
+                        </div>
+                        <div class="selected-time" id="selected-time">Выбрано: 00:00</div>
+                    </div>
+
+
+                    <button type="button" class="btn" onclick="saveSettings()">
+                        💾 Сохранить настройки
+                    </button>
+                </div>
+            </section>
+        </div>
+
+        <!-- нижняя навигация -->
+        <nav class="bottom-nav">
+            <div class="nav-buttons">
+                <button class="nav-btn active" data-section="stats-section">
+                    <span>📈</span>
+                    <span>Статистика</span>
+                </button>
+                <button class="nav-btn" data-section="tasks-section">
+                    <span>📋</span>
+                    <span>Задачи</span>
+                </button>
+                <button class="nav-btn" data-section="add-section">
+                    <span>➕</span>
+                    <span>Добавить</span>
+                </button>
+                <button class="nav-btn" data-section="settings-section">
+                    <span>⚙️</span>
+                    <span>Настройки</span>
+                </button>
+            </div>
+        </nav>
+
+        <div id="reportModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>📊 Детальный отчёт</h3>
+                    <button class="close-btn" onclick="closeReportModal()">&times;</button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="info-text">
+                        <strong>ℹ️ Информация:</strong> Это окно позволяет сформировать детальный отчёт по задачам за выбранный период времени. Вы можете фильтровать задачи по группам и анализировать статистику.
+                    </div>
+
+                    <div class="date-inputs">
+                        <div class="form-group">
+                            <label for="reportStartDate">📅 Начальная дата</label>
+                            <input type="date" id="reportStartDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reportEndDate">📅 Конечная дата</label>
+                            <input type="date" id="reportEndDate" required>
+                        </div>
+                    </div>
+
+                    <div class="modal-filters">
+                        <div class="modal-filter active" data-group="all" onclick="filterReport('all')">Все группы</div>
+                        <div class="modal-filter" data-group="no-group" onclick="filterReport('no-group')">Без группы</div>
+                        <!-- Будут добавляться другие группы -->
+                    </div>
+
+                    <button class="btn btn-success" onclick="generateReport()" style="width: 100%; margin-bottom: 20px;">
+                        🎯 Сформировать отчёт
+                    </button>
+
+                    <div id="reportResults" class="report-container hidden">
+                        <!-- Контент отчёта будет здесь -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно для диаграммы Ганта -->
+        <div id="ganttModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>📅 Диаграмма Ганта</h3>
+                    <button class="close-btn" onclick="closeGanttModal()">&times;</button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="info-text">
+                        <strong>ℹ️ Информация:</strong> Это окно отображает диаграмму Ганта - визуальное представление расписания задач. Вы можете видеть продолжительность задач и их взаимное расположение во времени.
+                    </div>
+
+                    <div class="date-inputs">
+                        <div class="form-group">
+                            <label for="ganttStartDate">📅 Начальная дата</label>
+                            <input type="date" id="ganttStartDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="ganttEndDate">📅 Конечная дата</label>
+                            <input type="date" id="ganttEndDate" required>
+                        </div>
+                    </div>
+
+                    <div class="modal-filters">
+                        <div class="modal-filter active" data-group="all" onclick="filterGantt('all')">Все группы</div>
+                        <div class="modal-filter" data-group="no-group" onclick="filterGantt('no-group')">Без группы</div>
+                        <!-- Будут добавляться другие группы -->
+                    </div>
+
+                    <button class="btn btn-success" onclick="generateGantt()" style="width: 100%; margin-bottom: 20px;">
+                        📈 Показать диаграмму
+                    </button>
+
+                    <div id="ganttResults" class="gantt-container hidden">
+                        <!-- Диаграмма Ганта будет здесь -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // КОД (не серверный)
+            let unsavedChanges = false;
+            let telegramUserId = null;
+            let currentTasks = [];
+            let currentTheme = 'light';
+            let selectedHour = 12;
+            let selectedMinute = 0;
+            let searchTimeout;
+            let currentReportData = null;
+            let currentGanttData = null;
+            let currentReportFilter = 'all';
+            let currentGanttFilter = 'all';
+
+            // закрытие окон статистики
+            function closeAllModals() {
+                document.getElementById('reportModal').classList.add('hidden');
+                document.getElementById('ganttModal').classList.add('hidden');
             }
-        }
-    }
 
-    // Обновление статистики
-    function updateStatistics() {
-        const total = currentTasks.length;
-        const completed = currentTasks.filter(t => t.status === 'done').length;
-        const progress = currentTasks.filter(t => t.status === 'progress').length;
-        const newTasks = currentTasks.filter(t => t.status === 'new').length;
+            // Навигация
+            function showSection(sectionId) {
+                closeAllModals();
 
-        document.getElementById('totalTasks').textContent = total;
-        document.getElementById('completedTasks').textContent = completed;
-        document.getElementById('progressTasks').textContent = progress;
-        document.getElementById('newTasks').textContent = newTasks;
-    }
+                if (unsavedChanges && document.getElementById('settings-section').classList.contains('active')) {
+                    resetUnsavedSettings();
+                }
 
-    function showNotification(message, type = 'success') {
-        if (type === 'error') {
-            alert('❌ ' + message);
-        } else {
-            alert('✅ ' + message);
-        }
-    }
+                document.querySelectorAll('.section').forEach(section => {
+                    section.classList.remove('active');
+                });
 
-    // КОД (связь с сервером)
+                document.getElementById(sectionId).classList.add('active');
 
-    function loadTasks() {
-        if (!checkAuth()) return;
-        if (!telegramUserId) {
-            console.error('User ID not available');
-            return;
-        }
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
 
-        fetch(`https://176.108.247.51:5000/get_tasks?user_id=${telegramUserId}`)
-            .then(response => response.json())
-            .then(tasks => {
+                const activeNavBtn = document.querySelector(`[data-section="${sectionId}"]`);
+                if (activeNavBtn) {
+                    activeNavBtn.classList.add('active');
+                }
+
+                if (sectionId === 'stats-section') {
+                    updateStatistics();
+                } else if (sectionId === 'tasks-section') {
+                    loadTasks();
+                }
+            }
+
+            // обработка ID
+            function initTelegramWebApp() {
+                console.log('🔧 Инициализация Telegram WebApp...');
+
+                const urlParams = new URLSearchParams(window.location.search);
+                telegramUserId = urlParams.get('user_id');
+
+                console.log('📋 URL параметры:', Object.fromEntries(urlParams.entries()));
+
+                if (!telegramUserId && window.Telegram && window.Telegram.WebApp) {
+                    console.log('✅ Обнаружен Telegram WebApp');
+                    window.Telegram.WebApp.ready();
+                    window.Telegram.WebApp.expand();
+
+                    const user = window.Telegram.WebApp.initDataUnsafe?.user;
+                    if (user && user.id) {
+                        telegramUserId = user.id;
+                        console.log('✅ User ID из WebApp:', telegramUserId);
+                    }
+                }
+
+                if (!telegramUserId) {
+                    telegramUserId = 123;
+                    console.log('⚠️ Используется тестовый user_id:', telegramUserId);
+                }
+
+                console.log('🎯 Финальный User ID:', telegramUserId);
+                document.getElementById('userId').value = telegramUserId;
+
+                loadTasks();
+                loadSettings();
+                updateStatistics();
+                enableAllButtons();
+            }
+
+            function checkAuth() {
+                if (!telegramUserId) {
+                    showNotification('Ошибка: Пользователь не авторизован', 'error');
+                    return false;
+                }
+                return true;
+            }
+
+            function enableAllButtons() {
+                const allElements = document.querySelectorAll('button, input, select, textarea');
+                allElements.forEach(element => {
+                    element.style.pointerEvents = 'auto';
+                    element.disabled = false;
+                });
+            }
+
+            // Управление темами
+            function toggleTheme() {
+                currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+                applyTheme(currentTheme);
+                updateThemeIcon();
+                updateThemeSelect();
+                saveThemeOnly();
+            }
+
+            function updateThemeSelect() {
+                document.getElementById('themeSelect').value = currentTheme;
+            }
+
+            function changeTheme(theme) {
+                currentTheme = theme;
+                applyTheme(theme);
+                updateThemeIcon();
+                markUnsavedChanges();
+            }
+
+            function applyTheme(theme) {
+                const body = document.body;
+                body.className = theme + '-theme';
+                localStorage.setItem('theme', theme);
+            }
+
+            function updateThemeIcon() {
+                const icon = document.getElementById('theme-icon');
+                icon.textContent = currentTheme === 'light' ? '🌙' : '🌞';
+            }
+
+            function saveThemeOnly() {
+                if (!checkAuth()) return;
+
+                const settings = {
+                    user_id: parseInt(telegramUserId),
+                    theme: currentTheme,
+                    notifications_enabled: document.getElementById('notificationsEnabled').checked,
+                    notification_time: document.getElementById('selected-time').textContent.replace('Выбрано: ', '')
+                };
+
+                fetch('https://176.108.247.51:5000/save_settings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(settings)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Тема сохранена:', data);
+                })
+                .catch(error => {
+                    console.error('Ошибка сохранения темы:', error);
+                });
+            }
+
+            function loadSettings() {
+                if (!telegramUserId) {
+                    console.error('User ID not available');
+                    return;
+                }
+
+                fetch(`https://176.108.247.51:5000/get_settings?user_id=${telegramUserId}`)
+                    .then(response => response.json())
+                    .then(settings => {
+                        if (settings.theme) {
+                            currentTheme = settings.theme;
+                            applyTheme(settings.theme);
+                            document.getElementById('themeSelect').value = settings.theme;
+                            updateThemeIcon();
+                            updateThemeSelect();
+                        }
+
+                        if (settings.notifications_enabled !== undefined) {
+                            document.getElementById('notificationsEnabled').checked = settings.notifications_enabled;
+                            updateNotificationVisibility();
+                        }
+
+                        if (settings.notification_time) {
+                            const [hours, minutes] = settings.notification_time.split(':');
+                            updateTimeSelection(hours, minutes);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Ошибка загрузки настроек:', error);
+                    });
+            }
+
+            function updateNotificationVisibility() {
+                const notificationsEnabled = document.getElementById('notificationsEnabled');
+                const notificationTimeGroup = document.getElementById('notificationTimeGroup');
+
+                if (notificationsEnabled && notificationTimeGroup) {
+                    if (notificationsEnabled.checked) {
+                        notificationTimeGroup.style.display = 'block';
+                    } else {
+                        notificationTimeGroup.style.display = 'none';
+                    }
+                }
+            }
+
+            function saveSettings() {
+                if (!checkAuth()) return;
+
+                const selectedTimeDiv = document.getElementById('selected-time');
+                let notificationTime = '12:00';
+                if (selectedTimeDiv) {
+                    const timeText = selectedTimeDiv.textContent.replace('Выбрано: ', '');
+                    notificationTime = timeText || '12:00';
+                }
+
+                const settings = {
+                    user_id: parseInt(telegramUserId),
+                    theme: document.getElementById('themeSelect').value,
+                    notifications_enabled: document.getElementById('notificationsEnabled').checked,
+                    notification_time: notificationTime
+                };
+
+                console.log('Сохраняем настройки:', settings);
+
+                fetch('https://176.108.247.51:5000/save_settings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(settings)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Настройки сохранены:', data);
+                    if (data.status === 'success') {
+                        showNotification('Настройки успешно сохранены!');
+                        unsavedChanges = false;
+                        currentTheme = settings.theme;
+                        applyTheme(settings.theme);
+                        updateThemeIcon();
+                    } else {
+                        throw new Error(data.error || 'Unknown error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка сохранения настроек:', error);
+                    showNotification('Ошибка сохранения настроек: ' + error.message, 'error');
+                });
+            }
+
+            // добавление новой задачи
+            function addTask() {
+                const taskData = {
+                    title: document.getElementById('taskTitle').value.trim(),
+                    description: document.getElementById('taskDescription').value.trim(),
+                    assignee: document.getElementById('taskAssignee').value.trim(),
+                    priority: document.getElementById('taskPriority').value,
+                    complexity: document.getElementById('taskComplexity').value,
+                    start_date: document.getElementById('taskStartDate').value,
+                    end_date: document.getElementById('taskEndDate').value,
+                    status: document.getElementById('taskStatus').value,
+                    group: document.getElementById('taskGroup').value
+                };
+
+                if (!taskData.title) {
+                    alert('Пожалуйста, введите название задачи');
+                    return;
+                }
+
+                const taskId = Date.now();
+                currentTasks.push({...taskData, id: taskId});
+                displayTask(taskData, taskId);
+                clearForm();
+                saveTaskToServer(taskData);
+
+                showSection('tasks-section');
+                showNotification('Задача успешно добавлена!');
+            }
+
+            function clearForm() {
+                document.getElementById('taskTitle').value = '';
+                document.getElementById('taskDescription').value = '';
+                document.getElementById('taskAssignee').value = '';
+                document.getElementById('taskPriority').value = 'medium';
+                document.getElementById('taskComplexity').value = 'medium';
+                document.getElementById('taskStartDate').value = '';
+                document.getElementById('taskEndDate').value = '';
+                document.getElementById('taskStatus').value = 'new';
+                document.getElementById('taskGroup').value = 'no-group';
+            }
+
+            // фильтрация и поиск
+            function debouncedSearch() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    searchTasks();
+                }, 300);
+            }
+
+            function filterTasks() {
+                const statusFilter = document.getElementById('filterStatus').value;
+                const priorityFilter = document.getElementById('filterPriority').value;
+                const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+
+                const filteredTasks = currentTasks.filter(task => {
+                    if (statusFilter !== 'all' && task.status !== statusFilter) {
+                        return false;
+                    }
+                    if (priorityFilter !== 'all' && task.priority !== priorityFilter) {
+                        return false;
+                    }
+                    if (searchTerm && !task.title.toLowerCase().includes(searchTerm)) {
+                        return false;
+                    }
+                    return true;
+                });
+
+                displayFilteredTasks(filteredTasks);
+            }
+
+            function searchTasks() {
+                const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+                if (searchTerm === '') {
+                    filterTasks();
+                    return;
+                }
+
+                const filteredTasks = currentTasks.filter(task => {
+                    return task.title.toLowerCase().includes(searchTerm);
+                });
+
+                displayFilteredTasks(filteredTasks);
+            }
+
+            function displayFilteredTasks(tasks) {
                 const taskList = document.getElementById('taskList');
                 taskList.innerHTML = '';
-                currentTasks = [];
 
                 if (tasks.length === 0) {
                     taskList.innerHTML = `
                         <div class="empty-state">
-                            <div>📝</div>
+                            <div>🔍</div>
                             <div>Задачи не найдены</div>
-                            <div style="font-size: 0.9em; margin-top: 10px;">Создайте первую задачу</div>
+                            <div style="font-size: 0.9em; margin-top: 10px;">Попробуйте изменить параметры поиска</div>
                         </div>
                     `;
                     return;
                 }
 
                 tasks.forEach(task => {
-                    const taskData = {
-                        id: task[0],
-                        title: task[2],
-                        description: task[3],
-                        priority: task[4],
-                        start_date: task[5],
-                        end_date: task[6],
-                        complexity: task[7],
-                        assignee: task[8],
-                        status: task[9]
-                    };
-                    currentTasks.push(taskData);
+                    displayTask(task, task.id);
                 });
-
-                filterTasks();
-                updateStatistics();
-            })
-            .catch(error => {
-                console.error('Ошибка загрузки задач:', error);
-            });
-    }
-
-    function saveTaskToServer(taskData) {
-        if (!checkAuth()) return;
-        if (!telegramUserId) {
-            showNotification('Ошибка: User ID не доступен', 'error');
-            return;
-        }
-
-        const taskToSave = {
-            user_id: parseInt(telegramUserId),
-            title: taskData.title,
-            description: taskData.description || '',
-            priority: taskData.priority || 'medium',
-            start_date: taskData.start_date || '',
-            end_date: taskData.end_date || '',
-            complexity: taskData.complexity || 'medium',
-            assignee: taskData.assignee || '',
-            status: taskData.status || 'new',
-            group_id: taskData.group_id || null
-        };
-
-        console.log('Отправляем задачу на сервер:', taskToSave);
-
-        fetch('https://176.108.247.51:5000/save_task', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(taskToSave)
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
             }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Ответ сервера:', data);
-            if (data.status === 'success') {
-                showNotification('Задача успешно добавлена!');
-                loadTasks();
-            } else {
-                throw new Error(data.error || 'Unknown error');
+
+            function displayTask(task, taskId) {
+                const taskList = document.getElementById('taskList');
+
+                const priorityTexts = { 'high': '🔴 Высокий', 'medium': '🟡 Средний', 'low': '🔵 Низкий' };
+                const statusTexts = { 'new': '🆕 Новая', 'progress': '🔄 В работе', 'done': '✅ Выполнена' };
+                const complexityTexts = { 'easy': '🟢 Легкая', 'medium': '🟡 Средняя', 'hard': '🔴 Сложная' };
+                const groupTexts = { 'no-group': '👥 Без группы' };
+
+                const taskElement = document.createElement('div');
+                taskElement.className = 'task-card';
+                taskElement.innerHTML = `
+                    <div class="task-header">
+                        <div class="task-title">${task.title}</div>
+                        <span class="task-priority priority-${task.priority}">${priorityTexts[task.priority]}</span>
+                    </div>
+
+                    ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
+
+                    <div class="task-meta">
+                        <div class="meta-item">
+                            <strong>Исполнитель:</strong> ${task.assignee || 'Не назначен'}
+                        </div>
+                        <div class="meta-item">
+                            <strong>Сложность:</strong> ${complexityTexts[task.complexity]}
+                        </div>
+                        <div class="meta-item">
+                            <strong>Группа:</strong> ${groupTexts[task.group] || task.group}
+                        </div>
+                        <div class="meta-item">
+                            <strong>Период:</strong> ${task.start_date && task.end_date ? `${new Date(task.start_date).toLocaleDateString('ru-RU')} - ${new Date(task.end_date).toLocaleDateString('ru-RU')}` : 'Не установлен'}
+                        </div>
+                        <div class="meta-item">
+                            <strong>Статус:</strong> ${statusTexts[task.status]}
+                        </div>
+                    </div>
+
+                    <div class="task-actions">
+                        <select class="status-select" onchange="updateTaskStatus(${taskId}, this.value)">
+                            <option value="new" ${task.status === 'new' ? 'selected' : ''}>🆕 Новая</option>
+                            <option value="progress" ${task.status === 'progress' ? 'selected' : ''}>🔄 В работе</option>
+                            <option value="done" ${task.status === 'done' ? 'selected' : ''}>✅ Выполнена</option>
+                        </select>
+                        <button class="btn btn-danger" onclick="deleteTask(${taskId})" style="padding: 10px 15px; font-size: 14px;">
+                            🗑️
+                        </button>
+                    </div>
+                `;
+
+                taskList.appendChild(taskElement);
             }
-        })
-        .catch(error => {
-            console.error('Ошибка сохранения:', error);
-            showNotification('Ошибка сохранения задачи: ' + error.message, 'error');
-        });
-    }
 
-    function updateTaskStatusOnServer(taskId, newStatus) {
-        if (!checkAuth()) return;
-        fetch('https://176.108.247.51:5000/update_status', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ task_id: taskId, status: newStatus, user_id: parseInt(telegramUserId) })
-        })
-        .then(response => response.json())
-        .then(data => console.log('Статус обновлен:', data))
-        .catch(error => console.error('Ошибка обновления:', error));
-    }
-
-    function deleteTaskOnServer(taskId) {
-        if (!checkAuth()) return;
-        fetch('https://176.108.247.51:5000/delete_task', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ task_id: taskId, user_id: parseInt(telegramUserId) })
-        })
-        .then(response => response.json())
-        .then(data => console.log('Задача удалена:', data))
-        .catch(error => console.error('Ошибка удаления:', error));
-    }
-
-    // Функции для работы с группами
-    function loadGroups() {
-        if (!checkAuth()) return;
-
-        fetch(`https://176.108.247.51:5000/get_groups?user_id=${telegramUserId}`)
-            .then(response => response.json())
-            .then(groups => {
-                currentGroups = groups;
-                displayGroups(groups);
-            })
-            .catch(error => {
-                console.error('Ошибка загрузки групп:', error);
-            });
-    }
-
-    function displayGroups(groups) {
-        const groupsList = document.getElementById('groupsList');
-        groupsList.innerHTML = '';
-
-        if (groups.length === 0) {
-            groupsList.innerHTML = `
-                <div class="empty-state">
-                    <div>📁</div>
-                    <div>Группы не найдены</div>
-                    <div style="font-size: 0.9em; margin-top: 10px;">Создайте первую группу задач</div>
-                </div>
-            `;
-            return;
-        }
-
-        groups.forEach(group => {
-            const groupElement = document.createElement('div');
-            groupElement.className = 'group-card';
-            groupElement.innerHTML = `
-                <div class="group-header">
-                    <div class="group-color" style="background-color: ${group[3] || '#3498db'}"></div>
-                    <div class="group-name">${group[2]}</div>
-                    <span class="group-task-count">0 задач</span>
-                </div>
-                ${group[3] ? `<div class="group-description">${group[3]}</div>` : ''}
-                <div class="group-actions">
-                    <button class="btn" onclick="viewGroup(${group[0]}, event)" style="flex: 1;">
-                        📋 Просмотреть
-                    </button>
-                    <button class="btn btn-danger" onclick="deleteGroup(${group[0]}, event)" 
-                            style="padding: 10px 15px; font-size: 14px;">
-                        🗑️
-                    </button>
-                </div>
-            `;
-            groupsList.appendChild(groupElement);
-        });
-    }
-
-    function showCreateGroupModal() {
-        document.getElementById('createGroupModal').classList.remove('hidden');
-    }
-
-    function closeCreateGroupModal() {
-        document.getElementById('createGroupModal').classList.add('hidden');
-        document.getElementById('groupName').value = '';
-        document.getElementById('groupDescription').value = '';
-        document.getElementById('groupColor').value = '#3498db';
-    }
-
-    function createGroup() {
-        const name = document.getElementById('groupName').value.trim();
-        const description = document.getElementById('groupDescription').value.trim();
-        const color = document.getElementById('groupColor').value;
-
-        if (!name) {
-            alert('Пожалуйста, введите название группы');
-            return;
-        }
-
-        const groupData = {
-            user_id: parseInt(telegramUserId),
-            name: name,
-            description: description,
-            color: color
-        };
-
-        fetch('https://176.108.247.51:5000/create_group', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(groupData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                showNotification('Группа успешно создана!');
-                closeCreateGroupModal();
-                loadGroups();
-                loadGroupsForSelect();
-            } else {
-                throw new Error(data.error || 'Unknown error');
+            function updateTaskStatus(taskId, newStatus) {
+                const taskIndex = currentTasks.findIndex(t => t.id === taskId);
+                if (taskIndex !== -1) {
+                    currentTasks[taskIndex].status = newStatus;
+                    updateTaskStatusOnServer(taskId, newStatus);
+                    updateStatistics();
+                    showNotification('Статус задачи обновлен');
+                }
             }
-        })
-        .catch(error => {
-            console.error('Ошибка создания группы:', error);
-            showNotification('Ошибка создания группы: ' + error.message, 'error');
-        });
-    }
 
-    function viewGroup(groupId, event) {
-        if (event) event.stopPropagation();
-        currentGroupId = groupId;
-        
-        fetch(`https://176.108.247.51:5000/get_group_tasks?group_id=${groupId}&user_id=${telegramUserId}`)
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('currentGroupName').textContent = data.group_name;
-                currentGroupTasks = data.tasks || [];
-                displayGroupTasks(currentGroupTasks);
-                showSection('group-view-section');
-            })
-            .catch(error => {
-                console.error('Ошибка загрузки задач группы:', error);
-            });
-    }
+            function deleteTask(taskId) {
+                if (confirm('Вы уверены, что хотите удалить эту задачу?')) {
+                    currentTasks = currentTasks.filter(t => t.id !== taskId);
+                    const taskElement = document.querySelector(`[onclick="deleteTask(${taskId})"]`)?.closest('.task-card');
+                    if (taskElement) {
+                        taskElement.remove();
+                    }
+                    deleteTaskOnServer(taskId);
+                    updateStatistics();
+                    showNotification('Задача удалена');
 
-    function exitGroupView() {
-        showSection('groups-section');
-        currentGroupId = null;
-        currentGroupTasks = [];
-    }
+                    if (currentTasks.length === 0) {
+                        const taskList = document.getElementById('taskList');
+                        taskList.innerHTML = `
+                            <div class="empty-state">
+                                <div>📝</div>
+                                <div>Задачи не найдены</div>
+                                <div style="font-size: 0.9em; margin-top: 10px;">Создайте первую задачу</div>
+                            </div>
+                        `;
+                    }
+                }
+            }
 
-    function displayGroupTasks(tasks) {
-        const groupTasksList = document.getElementById('groupTasksList');
-        groupTasksList.innerHTML = '';
+            function updateStatistics() {
+                const total = currentTasks.length;
+                const completed = currentTasks.filter(t => t.status === 'done').length;
+                const progress = currentTasks.filter(t => t.status === 'progress').length;
+                const newTasks = currentTasks.filter(t => t.status === 'new').length;
 
-        if (tasks.length === 0) {
-            groupTasksList.innerHTML = `
-                <div class="empty-state">
-                    <div>📝</div>
-                    <div>В этой группе пока нет задач</div>
-                    <div style="font-size: 0.9em; margin-top: 10px;">Добавьте задачи в группу</div>
-                </div>
-            `;
-            return;
-        }
+                document.getElementById('totalTasks').textContent = total;
+                document.getElementById('completedTasks').textContent = completed;
+                document.getElementById('progressTasks').textContent = progress;
+                document.getElementById('newTasks').textContent = newTasks;
+            }
 
-        tasks.forEach(task => {
-            displayTaskInGroup(task, groupTasksList);
-        });
-    }
-
-    function displayTaskInGroup(task, container) {
-        const priorityTexts = { 'high': '🔴 Высокий', 'medium': '🟡 Средний', 'low': '🔵 Низкий' };
-        const statusTexts = { 'new': '🆕 Новая', 'progress': '🔄 В работе', 'done': '✅ Выполнена' };
-        const complexityTexts = { 'easy': '🟢 Легкая', 'medium': '🟡 Средняя', 'hard': '🔴 Сложная' };
-
-        const taskElement = document.createElement('div');
-        taskElement.className = 'task-card';
-        taskElement.innerHTML = `
-            <div class="task-header">
-                <div class="task-title">${task[2]}</div>
-                <span class="task-priority priority-${task[4]}">${priorityTexts[task[4]]}</span>
-            </div>
-
-            ${task[3] ? `<div class="task-description">${task[3]}</div>` : ''}
-
-            <div class="task-meta">
-                <div class="meta-item">
-                    <strong>Исполнитель:</strong> ${task[8] || 'Не назначен'}
-                </div>
-                <div class="meta-item">
-                    <strong>Сложность:</strong> ${complexityTexts[task[7]]}
-                </div>
-                <div class="meta-item">
-                    <strong>Период:</strong> ${task[5] && task[6] ? `${new Date(task[5]).toLocaleDateString('ru-RU')} - ${new Date(task[6]).toLocaleDateString('ru-RU')}` : 'Не установлен'}
-                </div>
-                <div class="meta-item">
-                    <strong>Статус:</strong> ${statusTexts[task[9]]}
-                </div>
-            </div>
-
-            <div class="task-actions">
-                <select class="status-select" onchange="updateGroupTaskStatus(${task[0]}, this.value)">
-                    <option value="new" ${task[9] === 'new' ? 'selected' : ''}>🆕 Новая</option>
-                    <option value="progress" ${task[9] === 'progress' ? 'selected' : ''}>🔄 В работе</option>
-                    <option value="done" ${task[9] === 'done' ? 'selected' : ''}>✅ Выполнена</option>
-                </select>
-                <button class="btn btn-danger" onclick="deleteGroupTask(${task[0]})" style="padding: 10px 15px; font-size: 14px;">
-                    🗑️
-                </button>
-            </div>
-        `;
-
-        container.appendChild(taskElement);
-    }
-
-    function updateGroupTaskStatus(taskId, newStatus) {
-        updateTaskStatusOnServer(taskId, newStatus);
-        const taskIndex = currentGroupTasks.findIndex(t => t[0] === taskId);
-        if (taskIndex !== -1) {
-            currentGroupTasks[taskIndex][9] = newStatus;
-        }
-        showNotification('Статус задачи обновлен');
-    }
-
-    function deleteGroupTask(taskId) {
-        if (confirm('Вы уверены, что хотите удалить эту задачу из группы?')) {
-            deleteTaskOnServer(taskId);
-            currentGroupTasks = currentGroupTasks.filter(t => t[0] !== taskId);
-            displayGroupTasks(currentGroupTasks);
-            showNotification('Задача удалена из группы');
-        }
-    }
-
-    function deleteGroup(groupId, event) {
-        if (event) event.stopPropagation();
-        
-        if (confirm('ВНИМАНИЕ! При удалении группы все задачи в этой группе также будут удалены. Продолжить?')) {
-            fetch('https://176.108.247.51:5000/delete_group', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    group_id: groupId,
-                    user_id: parseInt(telegramUserId)
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    showNotification('Группа и все её задачи удалены!');
-                    loadGroups();
-                    loadGroupsForSelect();
+            function showNotification(message, type = 'success') {
+                if (type === 'error') {
+                    alert('❌ ' + message);
                 } else {
-                    throw new Error(data.error || 'Unknown error');
+                    alert('✅ ' + message);
                 }
-            })
-            .catch(error => {
-                console.error('Ошибка удаления группы:', error);
-                showNotification('Ошибка удаления группы: ' + error.message, 'error');
-            });
-        }
-    }
+            }
 
-    function searchGroups() {
-        const searchTerm = document.getElementById('groupSearch').value.toLowerCase().trim();
-        
-        if (searchTerm === '') {
-            displayGroups(currentGroups);
-            return;
-        }
-
-        const filteredGroups = currentGroups.filter(group => 
-            group[2].toLowerCase().includes(searchTerm)
-        );
-        
-        displayGroups(filteredGroups);
-    }
-
-    function filterGroupTasks() {
-        const statusFilter = document.getElementById('groupFilterStatus').value;
-        const searchTerm = document.getElementById('groupSearchInput').value.toLowerCase().trim();
-
-        let filteredTasks = currentGroupTasks;
-
-        if (statusFilter !== 'all') {
-            filteredTasks = filteredTasks.filter(task => task[9] === statusFilter);
-        }
-
-        if (searchTerm) {
-            filteredTasks = filteredTasks.filter(task => 
-                task[2].toLowerCase().includes(searchTerm)
-            );
-        }
-
-        displayGroupTasks(filteredTasks);
-    }
-
-    function searchGroupTasks() {
-        filterGroupTasks();
-    }
-
-    function loadGroupsForSelect() {
-        if (!checkAuth()) return;
-
-        fetch(`https://176.108.247.51:5000/get_groups?user_id=${telegramUserId}`)
-            .then(response => response.json())
-            .then(groups => {
-                const groupSelect = document.getElementById('taskGroup');
-                const currentValue = groupSelect.value;
-                
-                while (groupSelect.options.length > 1) {
-                    groupSelect.remove(1);
+            // КОД (связь с сервером)
+            function loadTasks() {
+                if (!checkAuth()) return;
+                if (!telegramUserId) {
+                    console.error('User ID not available');
+                    return;
                 }
-                
-                groups.forEach(group => {
-                    const option = document.createElement('option');
-                    option.value = group[0];
-                    option.textContent = group[2];
-                    groupSelect.appendChild(option);
+
+                fetch(`https://176.108.247.51:5000/get_tasks?user_id=${telegramUserId}`)
+                    .then(response => response.json())
+                    .then(tasks => {
+                        const taskList = document.getElementById('taskList');
+                        taskList.innerHTML = '';
+                        currentTasks = [];
+
+                        if (tasks.length === 0) {
+                            taskList.innerHTML = `
+                                <div class="empty-state">
+                                    <div>📝</div>
+                                    <div>Задачи не найдены</div>
+                                    <div style="font-size: 0.9em; margin-top: 10px;">Создайте первую задачу</div>
+                                </div>
+                            `;
+                            return;
+                        }
+
+                        tasks.forEach(task => {
+                            const taskData = {
+                                id: task[0],
+                                title: task[2],
+                                description: task[3],
+                                priority: task[4],
+                                start_date: task[5],
+                                end_date: task[6],
+                                complexity: task[7],
+                                assignee: task[8],
+                                status: task[9],
+                                group: task[10] || 'no-group'
+                            };
+                            currentTasks.push(taskData);
+                        });
+
+                        filterTasks();
+                        updateStatistics();
+                    })
+                    .catch(error => {
+                        console.error('Ошибка загрузки задач:', error);
+                    });
+            }
+
+            function saveTaskToServer(taskData) {
+                if (!checkAuth()) return;
+                if (!telegramUserId) {
+                    showNotification('Ошибка: User ID не доступен', 'error');
+                    return;
+                }
+
+                const taskToSave = {
+                    user_id: parseInt(telegramUserId),
+                    title: taskData.title,
+                    description: taskData.description || '',
+                    priority: taskData.priority || 'medium',
+                    start_date: taskData.start_date || '',
+                    end_date: taskData.end_date || '',
+                    complexity: taskData.complexity || 'medium',
+                    assignee: taskData.assignee || '',
+                    status: taskData.status || 'new',
+                    group: taskData.group || 'no-group'
+                };
+
+                console.log('Отправляем задачу на сервер:', taskToSave);
+
+                fetch('https://176.108.247.51:5000/save_task', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(taskToSave)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Ответ сервера:', data);
+                    if (data.status === 'success') {
+                        showNotification('Задача успешно добавлена!');
+                        loadTasks();
+                    } else {
+                        throw new Error(data.error || 'Unknown error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка сохранения:', error);
+                    showNotification('Ошибка сохранения задачи: ' + error.message, 'error');
                 });
-                
-                if (currentValue) {
-                    groupSelect.value = currentValue;
+            }
+
+            function updateTaskStatusOnServer(taskId, newStatus) {
+                if (!checkAuth()) return;
+                fetch('https://176.108.247.51:5000/update_status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ task_id: taskId, status: newStatus, user_id: telegramUserId })
+                })
+                .then(response => response.json())
+                .then(data => console.log('Статус обновлен:', data))
+                .catch(error => console.error('Ошибка обновления:', error));
+            }
+
+            function deleteTaskOnServer(taskId) {
+                if (!checkAuth()) return;
+                fetch('https://176.108.247.51:5000/delete_task', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ task_id: taskId, user_id: telegramUserId })
+                })
+                .then(response => response.json())
+                .then(data => console.log('Задача удалена:', data))
+                .catch(error => console.error('Ошибка удаления:', error));
+            }
+
+            // Функции для отчётов и диаграммы Ганта
+            function openReportModal() {
+                closeGanttModal();
+
+                const today = new Date().toISOString().split('T')[0];
+                const monthAgo = new Date();
+                monthAgo.setMonth(monthAgo.getMonth() - 1);
+                const monthAgoStr = monthAgo.toISOString().split('T')[0];
+
+                document.getElementById('reportStartDate').value = monthAgoStr;
+                document.getElementById('reportEndDate').value = today;
+                document.getElementById('reportResults').classList.add('hidden');
+                document.getElementById('reportModal').classList.remove('hidden');
+
+                document.querySelectorAll('#reportModal .modal-filter').forEach(filter => {
+                    filter.classList.remove('active');
+                });
+                document.querySelector('#reportModal .modal-filter[data-group="all"]').classList.add('active');
+                currentReportFilter = 'all';
+            }
+
+            function closeReportModal() {
+                document.getElementById('reportModal').classList.add('hidden');
+            }
+
+            function filterReport(group) {
+                currentReportFilter = group;
+
+                document.querySelectorAll('#reportModal .modal-filter').forEach(filter => {
+                    filter.classList.remove('active');
+                });
+                document.querySelector(`#reportModal .modal-filter[data-group="${group}"]`).classList.add('active');
+
+                if (currentReportData) {
+                    displayReportResults(currentReportData);
                 }
-            })
-            .catch(error => {
-                console.error('Ошибка загрузки групп для выбора:', error);
-            });
-    }
+            }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('🚀 DOM загружен, инициализируем приложение...');
+            function openGanttModal() {
+                closeReportModal();
 
-        initTelegramWebApp();
+                const today = new Date().toISOString().split('T')[0];
+                const monthAhead = new Date();
+                monthAhead.setMonth(monthAhead.getMonth() + 1);
+                const monthAheadStr = monthAhead.toISOString().split('T')[0];
 
-        const hoursColumn = document.getElementById('hours-column');
-        const minutesColumn = document.getElementById('minutes-column');
-        const selectedTimeDiv = document.getElementById('selected-time');
+                document.getElementById('ganttStartDate').value = today;
+                document.getElementById('ganttEndDate').value = monthAheadStr;
+                document.getElementById('ganttResults').classList.add('hidden');
+                document.getElementById('ganttModal').classList.remove('hidden');
 
-        function updateSelectedTime() {
-            const timeStr = `${selectedHour.toString().padStart(2,'0')}:${selectedMinute.toString().padStart(2,'0')}`;
-            localStorage.setItem('notificationTime', timeStr);
-            selectedTimeDiv.textContent = `Выбрано: ${timeStr}`;
-        }
+                document.querySelectorAll('#ganttModal .modal-filter').forEach(filter => {
+                    filter.classList.remove('active');
+                });
+                document.querySelector('#ganttModal .modal-filter[data-group="all"]').classList.add('active');
+                currentGanttFilter = 'all';
+            }
 
-        const savedTime = localStorage.getItem('notificationTime');
-        if (savedTime) {
-            const [h, m] = savedTime.split(':');
-            selectedHour = parseInt(h);
-            selectedMinute = parseInt(m);
-        }
+            function closeGanttModal() {
+                document.getElementById('ganttModal').classList.add('hidden');
+            }
 
-        for (let h = 0; h < 24; h++) {
-            const div = document.createElement('div');
-            div.textContent = h.toString().padStart(2,'0');
-            div.addEventListener('click', () => {
-                selectedHour = h;
-                updateSelectedTime();
-                markUnsavedChanges();
-            });
-            hoursColumn.appendChild(div);
-        }
+            function filterGantt(group) {
+                currentGanttFilter = group;
 
-        for (let m = 0; m < 60; m++) {
-            const div = document.createElement('div');
-            div.textContent = m.toString().padStart(2,'0');
-            div.addEventListener('click', () => {
-                selectedMinute = m;
-                updateSelectedTime();
-                markUnsavedChanges();
-            });
-            minutesColumn.appendChild(div);
-        }
+                document.querySelectorAll('#ganttModal .modal-filter').forEach(filter => {
+                    filter.classList.remove('active');
+                });
+                document.querySelector(`#ganttModal .modal-filter[data-group="${group}"]`).classList.add('active');
 
-        updateSelectedTime();
-
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const sectionId = this.getAttribute('data-section');
-                if (sectionId) {
-                    showSection(sectionId);
+                if (currentGanttData) {
+                    displayGanttChart(currentGanttData);
                 }
+            }
+
+            function generateReport() {
+                const startDate = document.getElementById('reportStartDate').value;
+                const endDate = document.getElementById('reportEndDate').value;
+
+                if (!startDate || !endDate) {
+                    showNotification('Пожалуйста, выберите начальную и конечную даты', 'error');
+                    return;
+                }
+
+                if (new Date(startDate) > new Date(endDate)) {
+                    showNotification('Начальная дата не может быть позже конечной', 'error');
+                    return;
+                }
+
+                const generateBtn = document.querySelector('#reportModal .btn');
+                const originalText = generateBtn.innerHTML;
+                generateBtn.innerHTML = '⏳ Формируем отчёт...';
+                generateBtn.disabled = true;
+
+                fetchReportData(startDate, endDate)
+                    .then(reportData => {
+                        currentReportData = reportData;
+                        displayReportResults(reportData);
+                        generateBtn.innerHTML = originalText;
+                        generateBtn.disabled = false;
+                    })
+                    .catch(error => {
+                        showNotification('Ошибка при формировании отчёта: ' + error.message, 'error');
+                        generateBtn.innerHTML = originalText;
+                        generateBtn.disabled = false;
+                    });
+            }
+
+            function fetchReportData(startDate, endDate) {
+                if (!checkAuth()) {
+                    throw new Error('Пользователь не авторизован');
+                }
+
+                // Используем существующий endpoint get_tasks и фильтруем на клиенте
+                return fetch(`https://176.108.247.51:5000/get_tasks?user_id=${telegramUserId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Ошибка сервера');
+                        }
+                        return response.json();
+                    })
+                    .then(tasks => {
+                        // Преобразуем данные и фильтруем по датам на клиенте
+                        const reportTasks = tasks.map(task => ({
+                            id: task[0],
+                            title: task[2],
+                            description: task[3],
+                            priority: task[4],
+                            start_date: task[5],
+                            end_date: task[6],
+                            complexity: task[7],
+                            assignee: task[8],
+                            status: task[9],
+                            group: task[10] || 'no-group'
+                        })).filter(task => {
+                            // Фильтрация по датам - задача попадает в отчёт если:
+                            // 1. Есть даты начала/окончания и они входят в период
+                            // 2. Или задача была создана в этот период
+                            const taskStart = task.start_date;
+                            const taskEnd = task.end_date;
+
+                            return (taskStart && taskStart >= startDate && taskStart <= endDate) ||
+                                   (taskEnd && taskEnd >= startDate && taskEnd <= endDate) ||
+                                   (taskStart && taskEnd && taskStart <= startDate && taskEnd >= endDate);
+                        });
+
+                        return {
+                            tasks: reportTasks,
+                            period: { startDate, endDate }
+                        };
+                    })
+                    .catch(error => {
+                        console.error('Ошибка получения данных:', error);
+                        throw new Error('Не удалось получить данные задач');
+                    });
+            }
+
+            function displayReportResults(reportData) {
+                const reportResults = document.getElementById('reportResults');
+
+                let filteredTasks = reportData.tasks || [];
+                if (currentReportFilter !== 'all') {
+                    filteredTasks = filteredTasks.filter(task => task.group === currentReportFilter);
+                }
+
+                let html = `
+                    <div class="report-stats">
+                        <div class="report-stat">
+                            <div class="report-stat-number">${filteredTasks.length}</div>
+                            <div class="report-stat-label">Всего задач</div>
+                        </div>
+                        <div class="report-stat">
+                            <div class="report-stat-number">${filteredTasks.filter(t => t.status === 'done').length}</div>
+                            <div class="report-stat-label">Выполнено</div>
+                        </div>
+                        <div class="report-stat">
+                            <div class="report-stat-number">${filteredTasks.filter(t => t.status === 'progress').length}</div>
+                            <div class="report-stat-label">В работе</div>
+                        </div>
+                        <div class="report-stat">
+                            <div class="report-stat-number">${filteredTasks.filter(t => t.status === 'new').length}</div>
+                            <div class="report-stat-label">Новых</div>
+                        </div>
+                    </div>
+
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th onclick="sortReportTable(0)">Задача</th>
+                                <th onclick="sortReportTable(1)">Исполнитель</th>
+                                <th onclick="sortReportTable(2)">Приоритет</th>
+                                <th onclick="sortReportTable(3)">Статус</th>
+                                <th onclick="sortReportTable(4)">Начало</th>
+                                <th onclick="sortReportTable(5)">Конец</th>
+                                <th onclick="sortReportTable(6)">Группа</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                filteredTasks.forEach(task => {
+                    const priorityTexts = { 'high': '🔴 Высокий', 'medium': '🟡 Средний', 'low': '🔵 Низкий' };
+                    const statusTexts = { 'new': '🆕 Новая', 'progress': '🔄 В работе', 'done': '✅ Выполнена' };
+                    const groupTexts = { 'no-group': '👥 Без группы' };
+
+                    html += `
+                        <tr>
+                            <td><strong>${task.title}</strong>${task.description ? `<br><small>${task.description}</small>` : ''}</td>
+                            <td>${task.assignee || 'Не назначен'}</td>
+                            <td>${priorityTexts[task.priority]}</td>
+                            <td>${statusTexts[task.status]}</td>
+                            <td>${task.start_date ? new Date(task.start_date).toLocaleDateString('ru-RU') : '-'}</td>
+                            <td>${task.end_date ? new Date(task.end_date).toLocaleDateString('ru-RU') : '-'}</td>
+                            <td>${groupTexts[task.group] || task.group}</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                        </tbody>
+                    </table>
+
+                    ${filteredTasks.length === 0 ? '<div class="empty-state" style="margin: 20px 0;">📝 Задачи не найдены</div>' : ''}
+                `;
+
+                reportResults.innerHTML = html;
+                reportResults.classList.remove('hidden');
+            }
+
+            function sortReportTable(columnIndex) {
+                console.log('Сортировка по колонке:', columnIndex);
+            }
+
+            function generateGantt() {
+                const startDate = document.getElementById('ganttStartDate').value;
+                const endDate = document.getElementById('ganttEndDate').value;
+
+                if (!startDate || !endDate) {
+                    showNotification('Пожалуйста, выберите начальную и конечную даты', 'error');
+                    return;
+                }
+
+                if (new Date(startDate) > new Date(endDate)) {
+                    showNotification('Начальная дата не может быть позже конечной', 'error');
+                    return;
+                }
+
+                const generateBtn = document.querySelector('#ganttModal .btn');
+                const originalText = generateBtn.innerHTML;
+                generateBtn.innerHTML = '⏳ Строим диаграмму...';
+                generateBtn.disabled = true;
+
+                fetchGanttData(startDate, endDate)
+                    .then(ganttData => {
+                        currentGanttData = ganttData;
+                        displayGanttChart(ganttData);
+                        generateBtn.innerHTML = originalText;
+                        generateBtn.disabled = false;
+                    })
+                    .catch(error => {
+                        showNotification('Ошибка при построении диаграммы: ' + error.message, 'error');
+                        generateBtn.innerHTML = originalText;
+                        generateBtn.disabled = false;
+                    });
+            }
+
+            function fetchGanttData(startDate, endDate) {
+                if (!checkAuth()) {
+                    throw new Error('Пользователь не авторизован');
+                }
+
+                return fetch(`https://176.108.247.51:5000/get_tasks?user_id=${telegramUserId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Ошибка сервера');
+                        }
+                        return response.json();
+                    })
+                    .then(tasks => {
+                        const ganttData = tasks.map(task => ({
+                            id: task[0],
+                            title: task[2],
+                            description: task[3],
+                            priority: task[4],
+                            start_date: task[5],
+                            end_date: task[6],
+                            complexity: task[7],
+                            assignee: task[8],
+                            status: task[9],
+                            group: task[10] || 'no-group'
+                        })).filter(task =>
+                            task.start_date && task.end_date &&
+                            ((task.start_date >= startDate && task.start_date <= endDate) ||
+                             (task.end_date >= startDate && task.end_date <= endDate) ||
+                             (task.start_date <= startDate && task.end_date >= endDate))
+                        );
+
+                        return {
+                            tasks: ganttData,
+                            period: { startDate, endDate }
+                        };
+                    });
+            }
+
+            function displayGanttChart(ganttData) {
+                const ganttResults = document.getElementById('ganttResults');
+
+                let filteredTasks = ganttData.tasks || [];
+                if (currentGanttFilter !== 'all') {
+                    filteredTasks = filteredTasks.filter(task => task.group === currentGanttFilter);
+                }
+
+                const startDate = new Date(ganttData.period.startDate);
+                const endDate = new Date(ganttData.period.endDate);
+                const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+
+                let html = `
+                    <div class="gantt-chart">
+                        <div style="padding: 10px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color);">
+                            <strong>Период:</strong> ${startDate.toLocaleDateString('ru-RU')} - ${endDate.toLocaleDateString('ru-RU')}
+                            (${totalDays} дней) | <strong>Задач:</strong> ${filteredTasks.length}
+                        </div>
+                `;
+
+                filteredTasks.forEach(task => {
+                    const taskStart = new Date(task.start_date);
+                    const taskEnd = new Date(task.end_date);
+                    const daysFromStart = Math.max(0, Math.ceil((taskStart - startDate) / (1000 * 60 * 60 * 24)));
+                    const taskDuration = Math.ceil((taskEnd - taskStart) / (1000 * 60 * 60 * 24)) + 1;
+                    const maxDuration = Math.min(taskDuration, totalDays - daysFromStart);
+
+                    const priorityColors = { 'high': '#e74c3c', 'medium': '#f39c12', 'low': '#2ecc71' };
+                    const statusTexts = { 'new': '🆕 Новая', 'progress': '🔄 В работе', 'done': '✅ Выполнена' };
+                    const statusColors = { 'new': '#95a5a6', 'progress': '#3498db', 'done': '#27ae60' };
+
+                    html += `
+                        <div class="gantt-task">
+                            <div class="gantt-task-info">
+                                <div class="gantt-task-title">${task.title}</div>
+                                <div class="gantt-task-meta">
+                                    ${task.assignee || 'Не назначен'} | ${task.group === 'no-group' ? '👥 Без группы' : task.group}
+                                </div>
+                            </div>
+                            <div class="gantt-task-bar-container">
+                                <div class="gantt-task-bar" style="
+                                    left: ${(daysFromStart / totalDays) * 100}%;
+                                    width: ${(maxDuration / totalDays) * 100}%;
+                                    background: ${priorityColors[task.priority]};
+                                    opacity: ${task.status === 'done' ? 0.7 : 1};
+                                ">
+                                    ${task.title}
+                                </div>
+                            </div>
+                            <div class="gantt-task-status" style="background: ${statusColors[task.status]}; color: white;">
+                                ${statusTexts[task.status]}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `</div>`;
+                html += filteredTasks.length === 0 ? '<div class="empty-state" style="margin: 20px 0;">📝 Задачи не найдены</div>' : '';
+
+                ganttResults.innerHTML = html;
+                ganttResults.classList.remove('hidden');
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('🚀 DOM загружен, инициализируем приложение...');
+
+                initTelegramWebApp();
+
+                const hoursColumn = document.getElementById('hours-column');
+                const minutesColumn = document.getElementById('minutes-column');
+                const selectedTimeDiv = document.getElementById('selected-time');
+
+                function updateSelectedTime() {
+                    const timeStr = `${selectedHour.toString().padStart(2,'0')}:${selectedMinute.toString().padStart(2,'0')}`;
+                    localStorage.setItem('notificationTime', timeStr);
+                    selectedTimeDiv.textContent = `Выбрано: ${timeStr}`;
+                }
+
+                const savedTime = localStorage.getItem('notificationTime');
+                if (savedTime) {
+                    const [h, m] = savedTime.split(':');
+                    selectedHour = parseInt(h);
+                    selectedMinute = parseInt(m);
+                }
+
+                for (let h = 0; h < 24; h++) {
+                    const div = document.createElement('div');
+                    div.textContent = h.toString().padStart(2,'0');
+                    div.addEventListener('click', () => {
+                        selectedHour = h;
+                        updateSelectedTime();
+                        markUnsavedChanges();
+                    });
+                    hoursColumn.appendChild(div);
+                }
+
+                for (let m = 0; m < 60; m++) {
+                    const div = document.createElement('div');
+                    div.textContent = m.toString().padStart(2,'0');
+                    div.addEventListener('click', () => {
+                        selectedMinute = m;
+                        updateSelectedTime();
+                        markUnsavedChanges();
+                    });
+                    minutesColumn.appendChild(div);
+                }
+
+                updateSelectedTime();
+
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const sectionId = this.getAttribute('data-section');
+                        if (sectionId) {
+                            showSection(sectionId);
+                        }
+                    });
+                });
+
+                document.getElementById('themeSelect').addEventListener('change', function() {
+                    markUnsavedChanges();
+                });
+
+                document.getElementById('notificationsEnabled').addEventListener('change', function() {
+                    markUnsavedChanges();
+                    updateNotificationVisibility();
+                });
+
+                // Обработчики закрытия модальных окон
+                document.getElementById('reportModal').addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeReportModal();
+                    }
+                });
+
+                document.getElementById('ganttModal').addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeGanttModal();
+                    }
+                });
+
+                showSection('stats-section');
+                console.log('✅ Приложение инициализировано');
             });
-        });
 
-        document.getElementById('themeSelect').addEventListener('change', function() {
-            markUnsavedChanges();
-        });
+            function markUnsavedChanges() {
+                unsavedChanges = true;
+                console.log('Есть несохраненные изменения');
+            }
 
-        document.getElementById('notificationsEnabled').addEventListener('change', function() {
-            markUnsavedChanges();
-            updateNotificationVisibility();
-        });
+            function resetUnsavedSettings() {
+                unsavedChanges = false;
+                loadSettings();
+                console.log('Настройки сброшены');
+            }
 
-        showSection('stats-section');
+            function updateTimeSelection(hours, minutes) {
+                const selectedTimeDiv = document.getElementById('selected-time');
+                if (selectedTimeDiv) {
+                    selectedTimeDiv.textContent = `Выбрано: ${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}`;
+                }
+                selectedHour = parseInt(hours);
+                selectedMinute = parseInt(minutes);
+            }
 
-        console.log('✅ Приложение инициализировано');
-    });
+            setInterval(updateStatistics, 10000);
+        </script>
+    </body>
+    </html>
 
-    function markUnsavedChanges() {
-        unsavedChanges = true;
-        console.log('Есть несохраненные изменения');
-    }
-
-    function resetUnsavedSettings() {
-        unsavedChanges = false;
-        loadSettings();
-        console.log('Настройки сброшены');
-    }
-
-    function updateTimeSelection(hours, minutes) {
-        const selectedTimeDiv = document.getElementById('selected-time');
-        if (selectedTimeDiv) {
-            selectedTimeDiv.textContent = `Выбрано: ${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}`;
-        }
-        selectedHour = parseInt(hours);
-        selectedMinute = parseInt(minutes);
-    }
-
-    setInterval(updateStatistics, 10000);
-    </script>
-</body>
-</html>
