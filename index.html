@@ -1439,6 +1439,8 @@
                 document.getElementById('taskEndDate').value = '';
                 document.getElementById('taskStatus').value = 'new';
                 document.getElementById('taskGroup').value = 'no-group';
+
+                toggleGroupButtons();
             }
 
             // фильтрация и поиск
@@ -1660,6 +1662,8 @@
                         updateAssigneeFilters();
                         updateModalFilters();
                         updateStatistics();
+
+                        toggleGroupButtons(); // ← ДОБАВЬТЕ ЭТУ СТРОКУ
                     })
                     .catch(error => {
                         console.error('Ошибка загрузки задач:', error);
@@ -2205,6 +2209,7 @@
                 console.log('🚀 DOM загружен, инициализируем приложение...');
 
                 initTelegramWebApp();
+                toggleGroupButtons();
 
                 const hoursColumn = document.getElementById('hours-column');
                 const minutesColumn = document.getElementById('minutes-column');
