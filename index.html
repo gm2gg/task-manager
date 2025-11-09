@@ -1220,6 +1220,13 @@
                 console.log('🎯 Финальный User ID:', telegramUserId);
                 document.getElementById('userId').value = telegramUserId;
 
+                // ЗДЕСЬ делаем запрос после того как telegramUserId установлен
+                fetch(`${API_BASE_URL}/auth_user`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ user_id: telegramUserId })
+                }).catch(error => console.log(error));
+
                 loadTasks();
                 loadSettings();
                 updateStatistics();
