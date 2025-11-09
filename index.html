@@ -517,7 +517,7 @@
                 margin-bottom: 15px;
                 opacity: 0.5;
             }
-            /* статистика *\
+            /* статистика */
             .modal {
                 position: fixed;
                 top: 0;
@@ -1047,6 +1047,7 @@
             let currentGanttData = null;
             let currentReportFilter = 'all';
             let currentGanttFilter = 'all';
+            const API_BASE_URL = 'https://176.108.247.51:8443';
 
             // закрытие окон статистики
             function closeAllModals() {
@@ -1176,7 +1177,7 @@
                     notification_time: document.getElementById('selected-time').textContent.replace('Выбрано: ', '')
                 };
 
-                fetch('https://176.108.247.51:5000/save_settings', {
+                fetch($'{API_BASE_URL}/save_settings', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1199,7 +1200,7 @@
                     return;
                 }
 
-                fetch(`https://176.108.247.51:5000/get_settings?user_id=${telegramUserId}`)
+                fetch($'{API_BASE_URL}/get_settings?user_id=${telegramUserId}`)
                     .then(response => response.json())
                     .then(settings => {
                         if (settings.theme) {
@@ -1257,7 +1258,7 @@
 
                 console.log('💾 Сохраняем настройки:', settings);
 
-                fetch('https://176.108.247.51:5000/save_settings', {
+                fetch($'{API_BASE_URL}/save_settings', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1504,7 +1505,7 @@
                     return;
                 }
 
-                fetch(`https://176.108.247.51:5000/get_tasks?user_id=${telegramUserId}`)
+                fetch($'{API_BASE_URL}/get_tasks?user_id=${telegramUserId}`)
                     .then(response => response.json())
                     .then(tasks => {
                         const taskList = document.getElementById('taskList');
@@ -1568,7 +1569,7 @@
 
                 console.log('Отправляем задачу на сервер:', taskToSave);
 
-                fetch('https://176.108.247.51:5000/save_task', {
+                fetch('${API_BASE_URL}/save_task', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1599,7 +1600,7 @@
 
             function updateTaskStatusOnServer(taskId, newStatus) {
                 if (!checkAuth()) return;
-                fetch('https://176.108.247.51:5000/update_status', {
+                fetch('${API_BASE_URL}/update_status', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ task_id: taskId, status: newStatus, user_id: telegramUserId })
@@ -1611,7 +1612,7 @@
 
             function deleteTaskOnServer(taskId) {
                 if (!checkAuth()) return;
-                fetch('https://176.108.247.51:5000/delete_task', {
+                fetch('${API_BASE_URL}/delete_task', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ task_id: taskId, user_id: telegramUserId })
@@ -1748,7 +1749,7 @@
 
                 console.log(`📊 Запрос отчета: ${startDate} - ${endDate} для user_id: ${telegramUserId}`);
 
-                return fetch(`https://176.108.247.51:5000/get_tasks?user_id=${telegramUserId}`)
+                return fetch($'{API_BASE_URL}/get_tasks?user_id=${telegramUserId}`)
                     .then(response => {
                         console.log('📨 Статус ответа:', response.status);
                         if (!response.ok) {
@@ -1934,7 +1935,7 @@
                     throw new Error('Пользователь не авторизован');
                 }
 
-                return fetch(`https://176.108.247.51:5000/get_tasks?user_id=${telegramUserId}`)
+                return fetch($'{API_BASE_URL}/get_tasks?user_id=${telegramUserId}`)
                     .then(response => {
                         if (!response.ok) {
                             throw new Error('Ошибка сервера');
