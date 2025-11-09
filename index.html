@@ -1057,6 +1057,13 @@
                         <!-- Будут добавляться другие группы -->
                     </div>
 
+                    <div class="form-group">
+                        <label>Исполнитель</label>
+                        <select class="filter-select" id="reportAssigneeFilter">
+                            <option value="all">Все исполнители</option>
+                        </select>
+                    </div>
+
                     <button class="btn btn-success" onclick="generateReport()" style="width: 100%; margin-bottom: 20px;">
                         🎯 Сформировать отчёт
                     </button>
@@ -1096,6 +1103,13 @@
                         <div class="modal-filter active" data-group="all" onclick="filterGantt('all')">Все группы</div>
                         <div class="modal-filter" data-group="no-group" onclick="filterGantt('no-group')">Без группы</div>
                         <!-- Будут добавляться другие группы -->
+                    </div>
+
+                    <div class="form-group">
+                        <label>Исполнитель</label>
+                        <select class="filter-select" id="ganttAssigneeFilter">
+                            <option value="all">Все исполнители</option>
+                        </select>
                     </div>
 
                     <button class="btn btn-success" onclick="generateGantt()" style="width: 100%; margin-bottom: 20px;">
@@ -1636,6 +1650,8 @@
                         });
 
                         filterTasks();
+                        updateAssigneeFilters();
+                        updateModalFilters();
                         updateStatistics();
                     })
                     .catch(error => {
@@ -1755,6 +1771,51 @@
                     displayReportResults(currentReportData);
                 }
             }
+            function updateAssigneeFilters() {
+                const assignees = [...new Set(currentTasks.map(task => task.assignee).filter(a => a))];
+                const reportFilter = document.getElementById('reportAssigneeFilter');
+                const ganttFilter = document.getElementById('ganttAssigneeFilter');
+
+                [reportFilter, ganttFilter].forEach(filter => {
+                    if (!filter) return;
+                    const currentValue = filter.value;
+                    filter.innerHTML = '<option value="all">Все исполнители</option>';
+
+                    assignees.forEach(assignee => {
+                        const option = document.createElement('option');
+                        option.value = assignee;
+                        option.textContent = assignee;
+                        filter.appendChild(option);
+                    });
+
+                    if (assignees.includes(currentValue)) {
+                        filter.value = currentValue;
+                    }
+                });
+            }
+            function updateModalFilters() {
+                const reportFilters = document.querySelectorAll('#reportModal .modal-filter:not([data-group="all"]):not([data-group="no-group"])');
+                reportFilters.forEach(filter => filter.remove());
+
+                const ganttFilters = document.querySelectorAll('#ganttModal .modal-filter:not([data-group="all"]):not([data-group="no-group"])');
+                ganttFilters.forEach(filter => filter.remove());
+
+                groups.filter(g => g !== 'no-group').forEach(group => {
+                    const reportFilter = document.createElement('div');
+                    reportFilter.className = 'modal-filter';
+                    reportFilter.setAttribute('data-group', group);
+                    reportFilter.textContent = group;
+                    reportFilter.onclick = () => filterReport(group);
+                    document.querySelector('#reportModal .modal-filters').appendChild(reportFilter);
+
+                    const ganttFilter = document.createElement('div');
+                    ganttFilter.className = 'modal-filter';
+                    ganttFilter.setAttribute('data-group', group);
+                    ganttFilter.textContent = group;
+                    ganttFilter.onclick = () => filterGantt(group);
+                    document.querySelector('#ganttModal .modal-filters').appendChild(ganttFilter);
+                });
+            }
 
             function openGanttModal() {
                 closeReportModal();
@@ -1796,6 +1857,7 @@
             function generateReport() {
                 const startDate = document.getElementById('reportStartDate').value;
                 const endDate = document.getElementById('reportEndDate').value;
+                const assigneeFilter = document.getElementById('reportAssigneeFilter').value;
 
                 if (!startDate || !endDate) {
                     showNotification('Пожалуйста, выберите начальную и конечную даты', 'error');
@@ -1807,9 +1869,8 @@
                     return;
                 }
 
-                // ✅ ПРОВЕРКА: Есть ли вообще задачи у пользователя
                 if (currentTasks.length === 0) {
-                    showNotification('❌ У вас нет задач для построения отчета', 'error');
+                    showNotification('У вас нет задач для построения отчета', 'error');
                     return;
                 }
 
@@ -1820,9 +1881,12 @@
 
                 fetchReportData(startDate, endDate)
                     .then(reportData => {
-                        // ✅ ПРОВЕРКА: Есть ли задачи в выбранном периоде
+                        if (assigneeFilter !== 'all') {
+                            reportData.tasks = reportData.tasks.filter(task => task.assignee === assigneeFilter);
+                        }
+
                         if (reportData.tasks.length === 0) {
-                            showNotification('📭 Нет задач за выбранный период', 'info');
+                            showNotification('Нет задач за выбранный период', 'info');
                             document.getElementById('reportResults').classList.add('hidden');
                         } else {
                             currentReportData = reportData;
@@ -1983,6 +2047,7 @@
             function generateGantt() {
                 const startDate = document.getElementById('ganttStartDate').value;
                 const endDate = document.getElementById('ganttEndDate').value;
+                const assigneeFilter = document.getElementById('ganttAssigneeFilter').value;
 
                 if (!startDate || !endDate) {
                     showNotification('Пожалуйста, выберите начальную и конечную даты', 'error');
@@ -1994,10 +2059,9 @@
                     return;
                 }
 
-                // ✅ ПРОВЕРКА: Есть ли вообще задачи с датами
                 const tasksWithDates = currentTasks.filter(task => task.start_date && task.end_date);
                 if (tasksWithDates.length === 0) {
-                    showNotification('❌ У вас нет задач с установленными датами для диаграммы Ганта', 'error');
+                    showNotification('У вас нет задач с установленными датами для диаграммы Ганта', 'error');
                     return;
                 }
 
@@ -2008,9 +2072,12 @@
 
                 fetchGanttData(startDate, endDate)
                     .then(ganttData => {
-                        // ✅ ПРОВЕРКА: Есть ли задачи в выбранном периоде
+                        if (assigneeFilter !== 'all') {
+                            ganttData.tasks = ganttData.tasks.filter(task => task.assignee === assigneeFilter);
+                        }
+
                         if (ganttData.tasks.length === 0) {
-                            showNotification('📭 Нет задач с датами в выбранном периоде', 'info');
+                            showNotification('Нет задач с датами в выбранном периоде', 'info');
                             document.getElementById('ganttResults').classList.add('hidden');
                         } else {
                             currentGanttData = ganttData;
@@ -2268,6 +2335,7 @@
 
             groups.push(groupName);
             updateGroupSelect();
+            updateModalFilters();
             document.getElementById('taskGroup').value = groupName;
             toggleGroupButtons();
             closeGroupModal();
@@ -2285,46 +2353,50 @@
                 return;
             }
 
+            const tasksToUpdate = currentTasks.filter(task => task.group === currentGroup);
+
+            tasksToUpdate.forEach(task => {
+                task.group = 'no-group';
+                updateTaskGroupOnServer(task.id, 'no-group');
+            });
+
             groups = groups.filter(g => g !== currentGroup);
             updateGroupSelect();
+            updateModalFilters();
             groupSelect.value = 'no-group';
             toggleGroupButtons();
 
-            showNotification('Группа удалена!');
+            loadTasks();
+            showNotification('Группа удалена! Задачи перемещены в "Без группы"');
         }
 
-        function updateGroupSelect() {
-            const groupSelect = document.getElementById('taskGroup');
-            const filterGroupSelect = document.getElementById('filterGroup');
+        function updateTaskGroupOnServer(taskId, newGroup) {
+            if (!checkAuth()) return;
 
-            // Обновляем выбор группы в форме
-            groupSelect.innerHTML = '<option value="no-group">👥 Без группы</option>';
-
-            // Обновляем фильтр групп
-            filterGroupSelect.innerHTML = `
-                <option value="all">Все группы</option>
-                <option value="no-group">Без группы</option>
-            `;
-
-            groups.filter(g => g !== 'no-group').forEach(group => {
-                // Добавляем в выбор группы
-                const option = document.createElement('option');
-                option.value = group;
-                option.textContent = group;
-                groupSelect.appendChild(option);
-
-                // Добавляем в фильтр групп
-                const filterOption = document.createElement('option');
-                filterOption.value = group;
-                filterOption.textContent = group;
-                filterGroupSelect.appendChild(filterOption);
-            });
+            fetch(`${API_BASE_URL}/update_task_group`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    task_id: taskId,
+                    group: newGroup,
+                    user_id: telegramUserId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Группа задачи обновлена:', data);
+                // Обновляем задачу локально
+                const task = currentTasks.find(t => t.id === taskId);
+                if (task) {
+                    task.group = newGroup;
+                }
+            })
+            .catch(error => console.error('Ошибка обновления группы:', error));
         }
 
         // Инициализация групп при загрузке
         updateGroupSelect();
         toggleGroupButtons();
-        updateGroupSelect();
 
         // Закрытие модального окна групп
         document.getElementById('groupModal').addEventListener('click', function(e) {
