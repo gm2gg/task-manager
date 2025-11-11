@@ -1,4 +1,4 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
     <html lang="ru">
     <head>
         <meta charset="UTF-8">
@@ -1655,14 +1655,22 @@
                                 group: task[10] || 'no-group'
                             };
                             currentTasks.push(taskData);
+
+                            // ДОБАВЛЯЕМ ГРУППУ В МАССИВ groups ЕСЛИ ЕЕ ТАМ НЕТ
+                            if (taskData.group !== 'no-group' && !groups.includes(taskData.group)) {
+                                groups.push(taskData.group);
+                            }
                         });
+
+                        // ОБНОВЛЯЕМ ФИЛЬТРЫ ГРУПП
+                        updateGroupFilter();
+                        updateModalFilters();
 
                         filterTasks();
                         updateAssigneeFilters();
-                        updateModalFilters();
                         updateStatistics();
 
-                        toggleGroupButtons(); // ← ДОБАВЬТЕ ЭТУ СТРОКУ
+                        toggleGroupButtons();
                     })
                     .catch(error => {
                         console.error('Ошибка загрузки задач:', error);
@@ -1803,6 +1811,66 @@
                     }
                 });
             }
+
+            function updateGroupSelect() {
+                const groupSelect = document.getElementById('taskGroup');
+                const currentValue = groupSelect.value;
+
+                // Сохраняем опции "Без группы"
+                const noGroupOption = groupSelect.querySelector('option[value="no-group"]');
+
+                // Очищаем все опции
+                groupSelect.innerHTML = '';
+
+                // Восстанавливаем опцию "Без группы"
+                if (noGroupOption) {
+                    groupSelect.appendChild(noGroupOption);
+                } else {
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = 'no-group';
+                    defaultOption.textContent = '👥 Без группы';
+                    defaultOption.selected = true;
+                    groupSelect.appendChild(defaultOption);
+                }
+
+                // Добавляем все группы кроме 'no-group'
+                groups.filter(group => group !== 'no-group').forEach(group => {
+                    const option = document.createElement('option');
+                    option.value = group;
+                    option.textContent = group;
+                    groupSelect.appendChild(option);
+                });
+
+                // Восстанавливаем выбранное значение если оно еще существует
+                if (Array.from(groupSelect.options).some(opt => opt.value === currentValue)) {
+                    groupSelect.value = currentValue;
+                } else {
+                    groupSelect.value = 'no-group';
+                }
+
+                toggleGroupButtons();
+            }
+
+            function updateGroupFilter() {
+                const groupFilter = document.getElementById('filterGroup');
+                const currentValue = groupFilter.value;
+
+                while (groupFilter.options.length > 2) {
+                    groupFilter.remove(2);
+                }
+
+                groups.filter(group => group !== 'no-group').forEach(group => {
+                    const option = document.createElement('option');
+                    option.value = group;
+                    option.textContent = group;
+                    groupFilter.appendChild(option);
+                });
+
+                if (Array.from(groupFilter.options).some(opt => opt.value === currentValue)) {
+                    groupFilter.value = currentValue;
+                }
+            }
+
             function updateModalFilters() {
                 const reportFilters = document.querySelectorAll('#reportModal .modal-filter:not([data-group="all"]):not([data-group="no-group"])');
                 reportFilters.forEach(filter => filter.remove());
@@ -2339,7 +2407,6 @@
                 return;
             }
 
-            // Проверяем существующие группы из select, а не из массива groups
             const groupSelect = document.getElementById('taskGroup');
             const existingGroups = Array.from(groupSelect.options).map(option => option.value);
 
@@ -2348,15 +2415,16 @@
                 return;
             }
 
-            // Добавляем группу в select
             const option = document.createElement('option');
             option.value = groupName;
             option.textContent = groupName;
             groupSelect.appendChild(option);
 
-            // Обновляем группы
             groups.push(groupName);
+
+            updateGroupFilter();
             updateModalFilters();
+
             groupSelect.value = groupName;
             toggleGroupButtons();
             closeGroupModal();
@@ -2382,12 +2450,14 @@
             });
 
             groups = groups.filter(g => g !== currentGroup);
-            updateGroupSelect();
-            updateModalFilters();
-            groupSelect.value = 'no-group';
-            toggleGroupButtons();
 
-            loadTasks();
+            updateGroupSelect();
+            updateGroupFilter();
+            updateModalFilters();
+
+            filterTasks();
+            updateStatistics();
+
             showNotification('Группа удалена! Задачи перемещены в "Без группы"');
         }
 
@@ -2435,4 +2505,3 @@
         </script>
     </body>
     </html>
-
