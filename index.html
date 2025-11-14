@@ -1121,17 +1121,13 @@
                 .then(response => response.json())
                 .then(groupsData => {
                     if (groupsData && groupsData.length > 0) {
-                        groupsData.forEach(group => {
-                            if (group && group !== 'no-group' && !groups.includes(group)) {
-                                groups.push(group);
-                            }
-                        });
-
-                        updateGroupSelect();
-                        updateGroupFilter();
-                        updateModalFilters();
-                        toggleGroupButtons();
+                        groups = ['no-group', ...groupsData.filter(g => g !== 'no-group')];
                     }
+
+                    updateGroupSelect();
+                    updateGroupFilter();
+                    updateModalFilters();
+                    toggleGroupButtons();
                 })
                 .catch(error => {
                     console.log('Ошибка загрузки групп:', error);
