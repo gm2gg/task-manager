@@ -15,61 +15,69 @@ USER_IDS = set()
 HOST = '0.0.0.0'
 PORT = 5000
 
+# ЗАМЕНИ ЭТУ ФУНКЦИЮ в твоём скрипте:
+
 def init_database():
     try:
         conn = sqlite3.connect('tasks.db')
         cursor = conn.cursor()
-
- #создание заного
- #       cursor.execute('DROP TABLE IF EXISTS tasks')
- #      cursor.execute('DROP TABLE IF EXISTS user_settings')
- #       cursor.execute('DROP TABLE IF EXISTS task_groups')
-
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS user_settings (
-                user_id INTEGER PRIMARY KEY,
-                theme TEXT DEFAULT 'light',
-                notifications_enabled BOOLEAN DEFAULT 1,
-                notification_time TEXT DEFAULT '12:00',
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS tasks (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                title TEXT NOT NULL,
-                description TEXT,
-                priority TEXT CHECK(priority IN ('low', 'medium', 'high')) DEFAULT 'medium',
-                start_date DATE,
-                end_date DATE,
-                complexity TEXT CHECK(complexity IN ('easy', 'medium', 'hard')) DEFAULT 'medium',
-                assignee TEXT,
-                status TEXT CHECK(status IN ('new', 'progress', 'done')) DEFAULT 'new',
-                task_group TEXT DEFAULT 'no-group',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS task_groups (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                group_name TEXT NOT NULL,
-                description TEXT,
-                color TEXT DEFAULT '#3498db',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE(user_id, group_name)
-            )
-        ''')
-
+        
+        # ПРОВЕРЯЕМ СУЩЕСТВУЮТ ЛИ ТАБЛИЦЫ
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='user_settings'")
+        if not cursor.fetchone():
+            # СОЗДАЁМ ТОЛЬКО ЕСЛИ НЕТ
+            cursor.execute('''
+                CREATE TABLE user_settings (
+                    user_id INTEGER PRIMARY KEY,
+                    theme TEXT DEFAULT 'light',
+                    notifications_enabled BOOLEAN DEFAULT 1,
+                    notification_time TEXT DEFAULT '12:00',
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            print("Создана таблица user_settings")
+        
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='tasks'")
+        if not cursor.fetchone():
+            cursor.execute('''
+                CREATE TABLE tasks (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    title TEXT NOT NULL,
+                    description TEXT,
+                    priority TEXT CHECK(priority IN ('low', 'medium', 'high')) DEFAULT 'medium',
+                    start_date DATE,
+                    end_date DATE,
+                    complexity TEXT CHECK(complexity IN ('easy', 'medium', 'hard')) DEFAULT 'medium',
+                    assignee TEXT,
+                    status TEXT CHECK(status IN ('new', 'progress', 'done')) DEFAULT 'new',
+                    task_group TEXT DEFAULT 'no-group',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            print("Создана таблица tasks")
+        
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='task_groups'")
+        if not cursor.fetchone():
+            cursor.execute('''
+                CREATE TABLE task_groups (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    group_name TEXT NOT NULL,
+                    description TEXT,
+                    color TEXT DEFAULT '#3498db',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, group_name)
+                )
+            ''')
+            print("Создана таблица task_groups")
+        
         conn.commit()
         conn.close()
-        print("База данных инициализирована")
+        print("База данных проверена")
     except Exception as e:
-        print(f"Ошибка инициализации базы данных: {e}")
+        print(f"Ошибка проверки базы данных: {e}")
 
 def save_task(user_id, title, description, priority, start_date, end_date, complexity, assignee, status, task_group='no-group'):
     try:
