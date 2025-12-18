@@ -1099,7 +1099,7 @@
         </div>
 
         <script>
-        // КОД (не серверный)
+        // CLIENT CODE (non-server)
         let unsavedChanges = false;
         let telegramUserId = null;
         let currentTasks = [];
@@ -1130,7 +1130,7 @@
                     toggleGroupButtons();
                 })
                 .catch(error => {
-                    console.log('Ошибка загрузки групп:', error);
+                    console.log('Error loading groups:', error);
                 });
         }
 
@@ -1565,7 +1565,7 @@
             }
         }
 
-        // Серверная часть:
+        // SERVER PART:
         function loadTasks() {
             if (!checkAuth()) return;
             if (!telegramUserId) return;
@@ -2196,7 +2196,7 @@
             ganttResults.classList.remove('hidden');
         }
 
-        // КОД В НАЧЛЕ
+        // INITIALIZATION CODE
         document.addEventListener('DOMContentLoaded', function() {
             initTelegramWebApp();
             toggleGroupButtons();
@@ -2295,7 +2295,7 @@
 
         setInterval(updateStatistics, 10000);
 
-        // КОД В КОНЦЕ
+        // END CODE
         function toggleGroupButtons() {
             const groupSelect = document.getElementById('taskGroup');
             const addBtn = document.getElementById('addGroupBtn');
@@ -2473,3 +2473,4 @@
         </script>
     </body>
     </html>
+
