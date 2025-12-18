@@ -15,8 +15,6 @@ USER_IDS = set()
 HOST = '0.0.0.0'
 PORT = 5000
 
-# ЗАМЕНИ ЭТУ ФУНКЦИЮ в твоём скрипте:
-
 def init_database():
     try:
         conn = sqlite3.connect('tasks.db')
