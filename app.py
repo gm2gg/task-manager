@@ -31,7 +31,7 @@ def init_database():
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
-            print("Создана таблица user_settings")
+            print("Created user_settings table")
         
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='tasks'")
         if not cursor.fetchone():
@@ -52,7 +52,7 @@ def init_database():
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
-            print("Создана таблица tasks")
+            print("Created tasks table")
         
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='task_groups'")
         if not cursor.fetchone():
@@ -67,20 +67,20 @@ def init_database():
                     UNIQUE(user_id, group_name)
                 )
             ''')
-            print("Создана таблица task_groups")
+            print("Created task_groups table")
         
         conn.commit()
         conn.close()
-        print("База данных проверена")
+        print("Database checked")
     except Exception as e:
-        print(f"Ошибка проверки базы данных: {e}")
+        print(f"Database check error: {e}")
 
 def save_task(user_id, title, description, priority, start_date, end_date, complexity, assignee, status, task_group='no-group'):
     try:
-        print(f"Сохранение задачи для user_id: {user_id}")
+        print(f"Saving task for user_id: {user_id}")
 
         if not title or not title.strip():
-            print(f"Пустое название задачи для пользователя {user_id}")
+            print(f"Empty task title for user {user_id}")
             return False
 
         def validate_date(date_str):
@@ -89,7 +89,7 @@ def save_task(user_id, title, description, priority, start_date, end_date, compl
             try:
                 return datetime.strptime(date_str, '%Y-%m-%d').date().isoformat()
             except ValueError:
-                print(f"Некорректный формат даты: {date_str}")
+                print(f"Invalid date format: {date_str}")
                 return None
 
         start_date = validate_date(start_date)
@@ -114,12 +114,12 @@ def save_task(user_id, title, description, priority, start_date, end_date, compl
         ))
         conn.commit()
         task_id = cursor.lastrowid
-        print(f"Задача сохранена с ID: {task_id}")
+        print(f"Task saved with ID: {task_id}")
         conn.close()
         return True
 
     except Exception as e:
-        print(f"Ошибка сохранения задачи: {e}")
+        print(f"Error saving task: {e}")
         return False
 
 def get_tasks_by_user(user_id):
@@ -129,10 +129,10 @@ def get_tasks_by_user(user_id):
         cursor.execute('SELECT * FROM tasks WHERE user_id = ? ORDER BY created_at DESC', (user_id,))
         tasks = cursor.fetchall()
         conn.close()
-        print(f"Найдено задач для пользователя {user_id}: {len(tasks)}")
+        print(f"Found tasks for user {user_id}: {len(tasks)}")
         return tasks
     except Exception as e:
-        print(f"Ошибка при получении задач: {e}")
+        print(f"Error getting tasks: {e}")
         return []
 
 def update_task_status(task_id, new_status):
@@ -141,16 +141,16 @@ def update_task_status(task_id, new_status):
         cursor = conn.cursor()
         cursor.execute("SELECT id FROM tasks WHERE id = ?", (task_id,))
         if not cursor.fetchone():
-            print(f"Задача с ID {task_id} не найдена")
+            print(f"Task with ID {task_id} not found")
             return False
         cursor.execute('UPDATE tasks SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
                        (new_status, task_id))
         conn.commit()
         conn.close()
-        print(f"Статус задачи {task_id} обновлен на: {new_status}")
+        print(f"Task {task_id} status updated to: {new_status}")
         return True
     except Exception as e:
-        print(f"Ошибка при обновлении статуса: {e}")
+        print(f"Error updating status: {e}")
         return False
 
 def delete_task(task_id):
@@ -159,15 +159,15 @@ def delete_task(task_id):
         cursor = conn.cursor()
         cursor.execute("SELECT id FROM tasks WHERE id = ?", (task_id,))
         if not cursor.fetchone():
-            print(f"Задача с ID {task_id} не найдена")
+            print(f"Task with ID {task_id} not found")
             return False
         cursor.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
         conn.commit()
         conn.close()
-        print(f"Задача {task_id} удалена")
+        print(f"Task {task_id} deleted")
         return True
     except Exception as e:
-        print(f"Ошибка при удалении задачи: {e}")
+        print(f"Error deleting task: {e}")
         return False
 
 def get_task_statistics(user_id):
@@ -198,10 +198,10 @@ def get_task_statistics(user_id):
             'by_priority': priority_stats,
             'by_assignee': assignee_stats
         }
-        print(f"Статистика для пользователя {user_id}: {result}")
+        print(f"Statistics for user {user_id}: {result}")
         return result
     except Exception as e:
-        print(f"Ошибка при получении статистики: {e}")
+        print(f"Error getting statistics: {e}")
         return {'total': 0, 'completed': 0, 'in_progress': 0, 'new': 0, 'completion_rate': 0, 'by_priority': {},
                 'by_assignee': {}}
 
@@ -228,7 +228,7 @@ def get_user_settings(user_id):
                 'notification_time': '12:00'
             }
     except Exception as e:
-        print(f"Ошибка получения настроек: {e}")
+        print(f"Error getting settings: {e}")
         return None
 
 def save_user_settings(user_id, theme, notifications_enabled, notification_time):
@@ -238,7 +238,7 @@ def save_user_settings(user_id, theme, notifications_enabled, notification_time)
                 datetime.strptime(notification_time, '%H:%M')
             except ValueError:
                 notification_time = '12:00'
-                print(f"Некорректное время, установлено по умолчанию: 12:00")
+                print(f"Invalid time, set to default: 12:00")
 
         conn = sqlite3.connect('tasks.db')
         cursor = conn.cursor()
@@ -249,10 +249,10 @@ def save_user_settings(user_id, theme, notifications_enabled, notification_time)
         ''', (user_id, theme, 1 if notifications_enabled else 0, notification_time))
         conn.commit()
         conn.close()
-        print(f"Настройки сохранены для пользователя {user_id}")
+        print(f"Settings saved for user {user_id}")
         return True
     except Exception as e:
-        print(f"Ошибка сохранения настроек для {user_id}: {e}")
+        print(f"Error saving settings for {user_id}: {e}")
         return False
 
 def send_daily_reminders():
@@ -267,10 +267,10 @@ def send_daily_reminders():
         ''')
         users = cursor.fetchall()
 
-        print(f"Пользователей с уведомлениями: {len(users)}")
+        print(f"Users with notifications: {len(users)}")
 
         for user_id, notification_time in users:
-            print(f"Проверяем пользователя {user_id}")
+            print(f"Checking user {user_id}")
 
             cursor.execute('''
                 SELECT COUNT(*)
@@ -281,37 +281,37 @@ def send_daily_reminders():
             active_tasks_count = cursor.fetchone()[0]
 
             if active_tasks_count == 0:
-                print(f"У пользователя {user_id} нет активных задач - пропускаем")
+                print(f"User {user_id} has no active tasks - skipping")
                 continue
 
-            print(f"У пользователя {user_id} найдено активных задач: {active_tasks_count}")
+            print(f"User {user_id} active tasks: {active_tasks_count}")
 
             current_time = datetime.now().strftime('%H:%M')
 
             if current_time == notification_time:
-                print(f"Время совпало! Отправляем уведомление пользователю {user_id}")
+                print(f"Time matched! Sending notification to user {user_id}")
 
-                message = "У вас остались не законченные задачи\n\n"
-                message += f"Всего активных задач: {active_tasks_count}\n"
-                message += "Не забудьте поработать над ними!"
+                message = "You have unfinished tasks\n\n"
+                message += f"Total active tasks: {active_tasks_count}\n"
+                message += "Don't forget to work on them!"
 
                 try:
                     bot.send_message(user_id, message)
-                    print(f"Уведомление отправлено пользователю {user_id}")
+                    print(f"Notification sent to user {user_id}")
                 except Exception as e:
-                    print(f"Ошибка отправки пользователю {user_id}: {e}")
+                    print(f"Error sending to user {user_id}: {e}")
             else:
-                print(f"Время не совпало: {current_time} != {notification_time}")
+                print(f"Time not matched: {current_time} != {notification_time}")
 
         conn.close()
 
     except Exception as e:
-        print(f"Ошибка в системе напоминаний: {e}")
+        print(f"Reminder system error: {e}")
 
 def run_scheduler():
     schedule.every(1).minutes.do(send_daily_reminders)
 
-    print("Планировщик уведомлений запущен")
+    print("Notification scheduler started")
 
     while True:
         schedule.run_pending()
@@ -323,7 +323,7 @@ def start(message):
     global USER_IDS
 
     if user_id in USER_IDS:
-        print(f"Пользователь {user_id} уже существует, обновляем клавиатуру")
+        print(f"User {user_id} already exists, updating keyboard")
 
         keyboard = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
         button2 = types.KeyboardButton("Do-Lister", web_app=types.WebAppInfo(
@@ -333,14 +333,14 @@ def start(message):
 
         bot.send_message(
             message.chat.id,
-            "С возвращением! Do-Lister готов к работе!",
+            "Welcome back! Do-Lister is ready to work!",
             reply_markup=keyboard
         )
         return
 
     USER_IDS.add(user_id)
-    print(f"Добавлен НОВЫЙ пользователь ID: {user_id}")
-    print(f"Всего пользователей: {len(USER_IDS)}")
+    print(f"NEW user added ID: {user_id}")
+    print(f"Total users: {len(USER_IDS)}")
 
     keyboard = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
     button2 = types.KeyboardButton("Do-Lister", web_app=types.WebAppInfo(
@@ -350,19 +350,19 @@ def start(message):
 
     bot.send_message(
         message.chat.id,
-        "Привет! Добро пожаловать в Do-Lister!\n\nНажми кнопку ниже чтобы начать:",
+        "Hello! Welcome to Do-Lister!\n\nClick button below to start:",
         reply_markup=keyboard
     )
 
     try:
         settings = get_user_settings(user_id)
         if settings and settings.get('user_id'):
-            print(f"Настройки для пользователя {user_id} уже существуют")
+            print(f"Settings for user {user_id} already exist")
         else:
             save_user_settings(user_id, 'light', True, '12:00')
-            print(f"Созданы настройки по умолчанию для пользователя {user_id}")
+            print(f"Default settings created for user {user_id}")
     except Exception as e:
-        print(f"Ошибка создания настроек для {user_id}: {e}")
+        print(f"Error creating settings for {user_id}: {e}")
 
 def is_authorized_user(user_id):
     user_id = int(user_id)
@@ -420,10 +420,10 @@ def get_tasks():
             return jsonify({'error': 'User not authorized'}), 401
 
         tasks = get_tasks_by_user(user_id)
-        print(f"Загружено задач для пользователя {user_id}: {len(tasks)}")
+        print(f"Loaded tasks for user {user_id}: {len(tasks)}")
         return jsonify(tasks)
     except Exception as e:
-        print(f"Ошибка при получении задач: {e}")
+        print(f"Error getting tasks: {e}")
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/save_task', methods=['POST'])
@@ -438,7 +438,7 @@ def save_task_from_site():
         if not is_authorized_user(user_id):
             return jsonify({'error': 'User not authorized'}), 401
 
-        print(f"Получены данные задачи для сохранения: {data}")
+        print(f"Received task data to save: {data}")
 
         if not data.get('title') or not data.get('title', '').strip():
             return jsonify({'error': 'Title is required'}), 400
@@ -462,7 +462,7 @@ def save_task_from_site():
             return jsonify({'error': 'Failed to save task'}), 500
 
     except Exception as e:
-        print(f"Ошибка при сохранении задачи: {e}")
+        print(f"Error saving task: {e}")
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/update_status', methods=['POST'])
@@ -481,13 +481,13 @@ def update_task_status_api():
 
         result = update_task_status(task_id, new_status)
         if result:
-            print(f"Статус задачи {task_id} обновлен на: {new_status}")
+            print(f"Task {task_id} status updated to: {new_status}")
             return jsonify({'status': 'success', 'message': 'Status updated successfully'})
         else:
             return jsonify({'error': 'Task not found'}), 404
 
     except Exception as e:
-        print(f"Ошибка при обновлении статуса: {e}")
+        print(f"Error updating status: {e}")
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/delete_task', methods=['POST'])
@@ -505,13 +505,13 @@ def delete_task_api():
 
         result = delete_task(task_id)
         if result:
-            print(f"Задача {task_id} удалена")
+            print(f"Task {task_id} deleted")
             return jsonify({'status': 'success', 'message': 'Task deleted successfully'})
         else:
             return jsonify({'error': 'Task not found'}), 404
 
     except Exception as e:
-        print(f"Ошибка при удалении задачи: {e}")
+        print(f"Error deleting task: {e}")
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/get_statistics', methods=['GET'])
@@ -527,7 +527,7 @@ def get_statistics_api():
         statistics = get_task_statistics(user_id)
         return jsonify(statistics)
     except Exception as e:
-        print(f"Ошибка при получении статистики: {e}")
+        print(f"Error getting statistics: {e}")
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/get_settings', methods=['GET'])
@@ -543,7 +543,7 @@ def get_settings_api():
         settings = get_user_settings(user_id)
         return jsonify(settings)
     except Exception as e:
-        print(f"Ошибка при получении настроек: {e}")
+        print(f"Error getting settings: {e}")
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/save_settings', methods=['POST'])
@@ -561,7 +561,7 @@ def save_settings_api():
         if not is_authorized_user(user_id):
             return jsonify({'error': 'User not authorized'}), 401
 
-        print(f"Получены настройки для сохранения: user_id={user_id}")
+        print(f"Received settings to save: user_id={user_id}")
 
         result = save_user_settings(user_id, theme, notifications_enabled, notification_time)
         if result:
@@ -569,7 +569,7 @@ def save_settings_api():
         else:
             return jsonify({'error': 'Failed to save settings'}), 500
     except Exception as e:
-        print(f"Ошибка при сохранении настроек: {e}")
+        print(f"Error saving settings: {e}")
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/get_report', methods=['GET'])
@@ -622,11 +622,11 @@ def get_report_api():
             'new_tasks': len([t for t in report_tasks if t['status'] == 'new'])
         }
 
-        print(f"Сформирован отчёт для пользователя {user_id}: {len(report_tasks)} задач")
+        print(f"Report generated for user {user_id}: {len(report_tasks)} tasks")
         return jsonify(report_data)
 
     except Exception as e:
-        print(f"Ошибка при формировании отчёта: {e}")
+        print(f"Error generating report: {e}")
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/update_task_group', methods=['POST'])
@@ -673,9 +673,9 @@ def test_reminder(user_id):
         conn.close()
 
         if active_tasks_count > 0:
-            message = "ТЕСТ: У вас остались не законченные задачи\n\n"
-            message += f"Всего активных задач: {active_tasks_count}\n"
-            message += "Не забудьте поработать над ними!"
+            message = "TEST: You have unfinished tasks\n\n"
+            message += f"Total active tasks: {active_tasks_count}\n"
+            message += "Don't forget to work on them!"
 
             bot.send_message(user_id, message)
             return jsonify({'status': 'success', 'message': f'Sent reminder about {active_tasks_count} tasks'})
@@ -774,7 +774,7 @@ def options_handler(path=None):
 if __name__ == '__main__':
     init_database()
 
-    print("Сервер запускается...")
+    print("Server starting...")
 
     flask_thread = threading.Thread(
         target=app.run,
@@ -792,13 +792,13 @@ if __name__ == '__main__':
     scheduler_thread.daemon = True
     scheduler_thread.start()
 
-    print("Сервер запущен!")
-    print(f"API доступно на порту {PORT}")
-    print("Telegram бот активен")
-    print("Планировщик уведомлений работает")
-    print(f"Активные пользователи: {len(USER_IDS)}")
+    print("Server started!")
+    print(f"API available on port {PORT}")
+    print("Telegram bot active")
+    print("Notification scheduler running")
+    print(f"Active users: {len(USER_IDS)}")
 
     try:
         bot.polling(none_stop=True, interval=0)
     except Exception as e:
-        print(f"Ошибка в Telegram боте: {e}")
+        print(f"Error in Telegram bot: {e}")
