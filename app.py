@@ -19,11 +19,9 @@ def init_database():
     try:
         conn = sqlite3.connect('tasks.db')
         cursor = conn.cursor()
-        
-        # ПРОВЕРЯЕМ СУЩЕСТВУЮТ ЛИ ТАБЛИЦЫ
+
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='user_settings'")
         if not cursor.fetchone():
-            # СОЗДАЁМ ТОЛЬКО ЕСЛИ НЕТ
             cursor.execute('''
                 CREATE TABLE user_settings (
                     user_id INTEGER PRIMARY KEY,
