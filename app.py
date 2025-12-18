@@ -10,7 +10,7 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
-bot = telebot.TeleBot('8201376925:AAGEpJj9lcuP-ptaEnXvQP4yZQ3h8TcTlWY')
+bot = telebot.TeleBot(secret)
 USER_IDS = set()
 HOST = '0.0.0.0'
 PORT = 5000
