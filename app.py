@@ -15,6 +15,7 @@ USER_IDS = set()
 HOST = '0.0.0.0'
 PORT = 5000
 
+
 def init_database():
     try:
         conn = sqlite3.connect('tasks.db')
@@ -32,7 +33,7 @@ def init_database():
                 )
             ''')
             print("Created user_settings table")
-        
+
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='tasks'")
         if not cursor.fetchone():
             cursor.execute('''
@@ -53,7 +54,7 @@ def init_database():
                 )
             ''')
             print("Created tasks table")
-        
+
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='task_groups'")
         if not cursor.fetchone():
             cursor.execute('''
@@ -68,14 +69,16 @@ def init_database():
                 )
             ''')
             print("Created task_groups table")
-        
+
         conn.commit()
         conn.close()
         print("Database checked")
     except Exception as e:
         print(f"Database check error: {e}")
 
-def save_task(user_id, title, description, priority, start_date, end_date, complexity, assignee, status, task_group='no-group'):
+
+def save_task(user_id, title, description, priority, start_date, end_date, complexity, assignee, status,
+              task_group='no-group'):
     try:
         print(f"Saving task for user_id: {user_id}")
 
@@ -122,6 +125,7 @@ def save_task(user_id, title, description, priority, start_date, end_date, compl
         print(f"Error saving task: {e}")
         return False
 
+
 def get_tasks_by_user(user_id):
     try:
         conn = sqlite3.connect('tasks.db')
@@ -134,6 +138,7 @@ def get_tasks_by_user(user_id):
     except Exception as e:
         print(f"Error getting tasks: {e}")
         return []
+
 
 def update_task_status(task_id, new_status):
     try:
@@ -153,6 +158,7 @@ def update_task_status(task_id, new_status):
         print(f"Error updating status: {e}")
         return False
 
+
 def delete_task(task_id):
     try:
         conn = sqlite3.connect('tasks.db')
@@ -169,6 +175,7 @@ def delete_task(task_id):
     except Exception as e:
         print(f"Error deleting task: {e}")
         return False
+
 
 def get_task_statistics(user_id):
     try:
@@ -205,6 +212,7 @@ def get_task_statistics(user_id):
         return {'total': 0, 'completed': 0, 'in_progress': 0, 'new': 0, 'completion_rate': 0, 'by_priority': {},
                 'by_assignee': {}}
 
+
 def get_user_settings(user_id):
     try:
         conn = sqlite3.connect('tasks.db')
@@ -231,6 +239,7 @@ def get_user_settings(user_id):
         print(f"Error getting settings: {e}")
         return None
 
+
 def save_user_settings(user_id, theme, notifications_enabled, notification_time):
     try:
         if notification_time:
@@ -254,6 +263,7 @@ def save_user_settings(user_id, theme, notifications_enabled, notification_time)
     except Exception as e:
         print(f"Error saving settings for {user_id}: {e}")
         return False
+
 
 def send_daily_reminders():
     try:
@@ -291,9 +301,16 @@ def send_daily_reminders():
             if current_time == notification_time:
                 print(f"Time matched! Sending notification to user {user_id}")
 
-                message = "You have unfinished tasks\n\n"
-                message += f"Total active tasks: {active_tasks_count}\n"
-                message += "Don't forget to work on them!"
+                try:
+                    chat = bot.get_chat(user_id)
+                    user_language = chat.language_code if hasattr(chat, 'language_code') else 'en'
+                except:
+                    user_language = 'en'
+
+                if user_language and user_language.startswith('ru'):
+                    message = f"У вас остались не законченные задачи\n\nВсего активных задач: {active_tasks_count}\nНе забудьте поработать над ними!"
+                else:
+                    message = f"You have unfinished tasks\n\nTotal active tasks: {active_tasks_count}\nDon't forget to work on them!"
 
                 try:
                     bot.send_message(user_id, message)
@@ -308,6 +325,7 @@ def send_daily_reminders():
     except Exception as e:
         print(f"Reminder system error: {e}")
 
+
 def run_scheduler():
     schedule.every(1).minutes.do(send_daily_reminders)
 
@@ -317,10 +335,20 @@ def run_scheduler():
         schedule.run_pending()
         time.sleep(1)
 
+
 @bot.message_handler(commands=['start'])
 def start(message):
     user_id = message.from_user.id
     global USER_IDS
+
+    user_language = message.from_user.language_code if message.from_user.language_code else 'en'
+
+    if user_language.startswith('ru'):
+        welcome_msg = "Привет! Добро пожаловать в Do-Lister!\n\nНажми кнопку ниже чтобы начать:"
+        welcome_back_msg = "С возвращением! Do-Lister готов к работе!"
+    else:
+        welcome_msg = "Hello! Welcome to Do-Lister!\n\nClick button below to start:"
+        welcome_back_msg = "Welcome back! Do-Lister is ready to work!"
 
     if user_id in USER_IDS:
         print(f"User {user_id} already exists, updating keyboard")
@@ -333,7 +361,7 @@ def start(message):
 
         bot.send_message(
             message.chat.id,
-            "Welcome back! Do-Lister is ready to work!",
+            welcome_back_msg,
             reply_markup=keyboard
         )
         return
@@ -350,7 +378,7 @@ def start(message):
 
     bot.send_message(
         message.chat.id,
-        "Hello! Welcome to Do-Lister!\n\nClick button below to start:",
+        welcome_msg,
         reply_markup=keyboard
     )
 
@@ -363,6 +391,7 @@ def start(message):
             print(f"Default settings created for user {user_id}")
     except Exception as e:
         print(f"Error creating settings for {user_id}: {e}")
+
 
 def is_authorized_user(user_id):
     user_id = int(user_id)
@@ -392,6 +421,7 @@ def is_authorized_user(user_id):
 
     return False
 
+
 @app.route('/auth_user', methods=['POST'])
 def auth_user():
     try:
@@ -409,6 +439,7 @@ def auth_user():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
 @app.route('/get_tasks', methods=['GET'])
 def get_tasks():
     try:
@@ -425,6 +456,7 @@ def get_tasks():
     except Exception as e:
         print(f"Error getting tasks: {e}")
         return jsonify({'error': 'Internal server error'}), 500
+
 
 @app.route('/save_task', methods=['POST'])
 def save_task_from_site():
@@ -465,6 +497,7 @@ def save_task_from_site():
         print(f"Error saving task: {e}")
         return jsonify({'error': 'Internal server error'}), 500
 
+
 @app.route('/update_status', methods=['POST'])
 def update_task_status_api():
     try:
@@ -490,6 +523,7 @@ def update_task_status_api():
         print(f"Error updating status: {e}")
         return jsonify({'error': 'Internal server error'}), 500
 
+
 @app.route('/delete_task', methods=['POST'])
 def delete_task_api():
     try:
@@ -514,6 +548,7 @@ def delete_task_api():
         print(f"Error deleting task: {e}")
         return jsonify({'error': 'Internal server error'}), 500
 
+
 @app.route('/get_statistics', methods=['GET'])
 def get_statistics_api():
     try:
@@ -530,6 +565,7 @@ def get_statistics_api():
         print(f"Error getting statistics: {e}")
         return jsonify({'error': 'Internal server error'}), 500
 
+
 @app.route('/get_settings', methods=['GET'])
 def get_settings_api():
     try:
@@ -545,6 +581,7 @@ def get_settings_api():
     except Exception as e:
         print(f"Error getting settings: {e}")
         return jsonify({'error': 'Internal server error'}), 500
+
 
 @app.route('/save_settings', methods=['POST'])
 def save_settings_api():
@@ -571,6 +608,7 @@ def save_settings_api():
     except Exception as e:
         print(f"Error saving settings: {e}")
         return jsonify({'error': 'Internal server error'}), 500
+
 
 @app.route('/get_report', methods=['GET'])
 def get_report_api():
@@ -629,6 +667,7 @@ def get_report_api():
         print(f"Error generating report: {e}")
         return jsonify({'error': 'Internal server error'}), 500
 
+
 @app.route('/update_task_group', methods=['POST'])
 def update_task_group():
     try:
@@ -651,9 +690,11 @@ def update_task_group():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
 @app.route('/health', methods=['GET'])
 def health_check():
     return jsonify({'status': 'healthy', 'service': 'Task Manager API', 'active_users': len(USER_IDS)})
+
 
 @app.route('/test_reminder/<int:user_id>', methods=['GET'])
 def test_reminder(user_id):
@@ -685,6 +726,7 @@ def test_reminder(user_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
 @app.route('/save_group', methods=['POST'])
 def save_group():
     try:
@@ -707,6 +749,7 @@ def save_group():
         return jsonify({'status': 'success', 'message': 'Group saved'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 @app.route('/delete_group', methods=['POST'])
 def delete_group():
@@ -734,6 +777,7 @@ def delete_group():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
 @app.route('/get_groups', methods=['GET'])
 def get_groups():
     try:
@@ -751,6 +795,7 @@ def get_groups():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
 @app.after_request
 def after_request(response):
     response.headers.add('Access-Control-Allow-Origin', 'https://gm2gg.github.io')
@@ -758,18 +803,22 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     return response
 
+
 @app.route('/')
 def index():
     return jsonify({"message": "Do-Lister API", "status": "running"})
+
 
 @app.route('/favicon.ico')
 def favicon():
     return '', 204
 
+
 @app.route('/', methods=['OPTIONS'])
 @app.route('/<path:path>', methods=['OPTIONS'])
 def options_handler(path=None):
     return '', 200
+
 
 if __name__ == '__main__':
     init_database()
